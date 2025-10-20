@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Lock, Camera, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ADMIN_CREDENTIALS, STORAGE_KEYS } from "@/lib/data";
+import logo from "@assets/logo2_1760959947383.png";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -39,9 +40,7 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary rounded-lg p-4">
-              <Camera className="h-12 w-12 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Binal Studio" className="h-20 w-20 rounded-full" />
           </div>
           <CardTitle className="font-serif text-3xl">Admin Panel</CardTitle>
           <CardDescription>

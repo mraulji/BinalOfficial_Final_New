@@ -1,4 +1,5 @@
-import { Camera, Mail, Phone, MapPin, Facebook, Instagram, Youtube, Twitter } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, Twitter } from "lucide-react";
+import logo from "@assets/logo2_1760959947383.png";
 
 export function Footer() {
   const scrollToSection = (id: string) => {
@@ -22,9 +23,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="bg-primary rounded-md p-2">
-                <Camera className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="Binal Studio" className="h-12 w-12 rounded-full" />
               <div>
                 <h3 className="font-serif text-xl font-bold text-foreground">Binal Studio</h3>
                 <p className="text-xs text-muted-foreground font-mono">Photography</p>

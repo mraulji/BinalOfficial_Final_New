@@ -14,67 +14,67 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 220 15% 98%;
+  --background: 260 50% 8%;
 
-  --foreground: 220 15% 12%;
+  --foreground: 0 0% 98%;
 
-  --border: 220 10% 88%;
+  --border: 260 20% 20%;
 
-  --card: 0 0% 100%;
+  --card: 260 40% 12%;
 
-  --card-foreground: 220 15% 12%;
+  --card-foreground: 0 0% 98%;
 
-  --card-border: 220 10% 92%;
+  --card-border: 260 30% 18%;
 
-  --sidebar: 220 12% 96%;
+  --sidebar: 260 40% 10%;
 
-  --sidebar-foreground: 220 15% 12%;
+  --sidebar-foreground: 0 0% 98%;
 
-  --sidebar-border: 220 10% 88%;
+  --sidebar-border: 260 30% 16%;
 
-  --sidebar-primary: 195 70% 56%;
+  --sidebar-primary: 320 60% 55%;
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  --sidebar-accent: 220 12% 92%;
+  --sidebar-accent: 260 35% 16%;
 
-  --sidebar-accent-foreground: 220 15% 12%;
+  --sidebar-accent-foreground: 0 0% 98%;
 
-  --sidebar-ring: 195 70% 56%;
+  --sidebar-ring: 320 60% 55%;
 
-  --popover: 0 0% 100%;
+  --popover: 260 40% 14%;
 
-  --popover-foreground: 220 15% 12%;
+  --popover-foreground: 0 0% 98%;
 
-  --popover-border: 220 10% 90%;
+  --popover-border: 260 30% 22%;
 
-  --primary: 195 70% 56%;
+  --primary: 270 50% 40%;
 
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 220 12% 90%;
+  --secondary: 260 30% 18%;
 
-  --secondary-foreground: 220 15% 12%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 220 10% 94%;
+  --muted: 260 25% 16%;
 
-  --muted-foreground: 220 10% 40%;
+  --muted-foreground: 260 10% 70%;
 
-  --accent: 220 8% 92%;
+  --accent: 320 60% 55%;
 
-  --accent-foreground: 220 15% 12%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
 
   --destructive-foreground: 0 0% 100%;
 
-  --input: 220 10% 70%;
-  --ring: 195 70% 56%;
-  --chart-1: 195 70% 56%;
-  --chart-2: 266 48% 28%;
-  --chart-3: 304 54% 36%;
-  --chart-4: 195 60% 45%;
-  --chart-5: 266 40% 40%;
+  --input: 260 20% 30%;
+  --ring: 320 60% 55%;
+  --chart-1: 270 50% 40%;
+  --chart-2: 320 60% 55%;
+  --chart-3: 280 45% 50%;
+  --chart-4: 270 60% 50%;
+  --chart-5: 320 50% 45%;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -158,7 +158,7 @@
 
   --sidebar-accent-foreground: 0 0% 98%;
 
-  --sidebar-ring: 195 70% 56%;
+  --sidebar-ring: 320 60% 55%;
 
   --popover: 220 12% 14%;
 

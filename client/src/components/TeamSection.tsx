@@ -29,21 +29,25 @@ export function TeamSection() {
           {team.map((member) => (
             <div
               key={member.id}
-              className="group hover-elevate active-elevate-2 rounded-lg overflow-hidden bg-background border border-border"
+              className="group text-center"
               data-testid={`card-team-${member.id}`}
             >
-              <div className="aspect-[3/4] overflow-hidden bg-muted">
-                <img
-                  src={member.photo}
-                  alt={member.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+              <div className="relative w-48 h-48 mx-auto mb-6">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent p-1">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-muted">
+                    <img
+                      src={member.photo}
+                      alt={member.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="p-6">
+              <div className="px-4">
                 <h3 className="font-serif text-xl font-bold text-foreground mb-2">
                   {member.name}
                 </h3>
-                <p className="text-sm font-mono text-primary mb-3">{member.role}</p>
+                <p className="text-sm font-mono text-accent mb-3">{member.role}</p>
                 {member.bio && (
                   <p className="text-sm text-muted-foreground">{member.bio}</p>
                 )}

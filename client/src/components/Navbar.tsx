@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Menu, X, Camera } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@assets/logo2_1760959947383.png";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -56,9 +57,7 @@ export function Navbar() {
             className="flex items-center gap-3 hover-elevate active-elevate-2 rounded-md px-3 py-2 -ml-3"
             data-testid="link-home"
           >
-            <div className="bg-primary rounded-md p-2">
-              <Camera className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Binal Studio" className="h-12 w-12 rounded-full" />
             <div className="hidden sm:block">
               <h1 className="font-serif text-xl font-bold text-foreground">
                 Binal Studio

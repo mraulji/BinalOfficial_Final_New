@@ -53,7 +53,7 @@ export function ServicesSection() {
                 data-testid={`card-service-${service.id}`}
               >
                 {/* Price Badge */}
-                <div className="absolute top-4 right-4 px-3 py-1 bg-chart-3 text-white rounded-full text-sm font-mono font-semibold">
+                <div className="absolute top-4 right-4 px-3 py-1 bg-accent text-accent-foreground rounded-full text-sm font-mono font-semibold">
                   {formatPrice(service.basePrice)}
                 </div>
 
