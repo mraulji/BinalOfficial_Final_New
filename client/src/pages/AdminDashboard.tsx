@@ -5,7 +5,7 @@ import {
   Images, 
   DollarSign, 
   SlidersHorizontal, 
-  Video, 
+  Video as VideoIcon, 
   LogOut,
   Plus,
   Trash2,
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
               Services
             </TabsTrigger>
             <TabsTrigger value="videos" data-testid="tab-videos">
-              <Video className="h-4 w-4 mr-2" />
+              <VideoIcon className="h-4 w-4 mr-2" />
               Videos
             </TabsTrigger>
           </TabsList>
