@@ -1,3 +1,5 @@
+import { updateGlobalCacheBuster } from './cacheManager';
+
 // Cloudinary Configuration for Live Image Uploads
 export const CLOUDINARY_CONFIG = {
   // Your Cloudinary credentials
@@ -157,11 +159,13 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
         const data = await response.json();
         console.log(`✅ Upload successful with preset: ${preset || 'none'}`);
         
-        // Add cache-busting parameter to the URL for immediate refresh
-        const cacheBustedUrl = `${data.secure_url}?v=${timestamp}`;
-        console.log(`🔄 Cache-busted URL: ${cacheBustedUrl}`);
+        // Update global cache buster to force refresh on all browsers
+        updateGlobalCacheBuster();
         
-        return cacheBustedUrl;
+        // Return the clean URL (cache buster will be added by cacheManager)
+        console.log(`🔄 New image uploaded: ${data.secure_url}`);
+        
+        return data.secure_url;
       } else {
         const errorText = await response.text();
         console.warn(`❌ Upload failed with preset '${preset}': ${response.status} - ${errorText}`);
@@ -232,11 +236,13 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
         const data = await response.json();
         console.log(`✅ URL upload successful with preset: ${preset || 'none'}`);
         
-        // Add cache-busting parameter to the URL
-        const cacheBustedUrl = `${data.secure_url}?v=${timestamp}`;
-        console.log(`🔄 Cache-busted URL: ${cacheBustedUrl}`);
+        // Update global cache buster to force refresh on all browsers
+        updateGlobalCacheBuster();
         
-        return cacheBustedUrl;
+        // Return the clean URL (cache buster will be added by cacheManager)
+        console.log(`🔄 New image uploaded: ${data.secure_url}`);
+        
+        return data.secure_url;
       } else {
         const errorText = await response.text();
         console.warn(`❌ URL upload failed with preset '${preset}': ${response.status} - ${errorText}`);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CachedImage } from "@/components/CachedImage";
 import { getCarouselImages, STORAGE_KEYS } from "@/lib/data";
 import type { CarouselImage } from "@shared/schema";
 
@@ -55,7 +56,7 @@ export function HeroCarousel() {
     <div id="home" className="relative h-screen w-full overflow-hidden">
       {/* Image */}
       <div className="absolute inset-0">
-        <img
+        <CachedImage
           src={currentImage.url}
           alt={currentImage.title || "Hero image"}
           className="w-full h-full object-cover"

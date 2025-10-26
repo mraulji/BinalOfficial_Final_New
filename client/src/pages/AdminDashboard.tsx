@@ -12,10 +12,12 @@ import {
   LogOut,
   Plus,
   Trash2,
-  Save
+  Save,
+  RefreshCw
 } from "lucide-react";
 import { SimpleImageUpload } from "@/components/SimpleImageUpload";
 import { EmailSetup } from "@/components/EmailSetup";
+import { updateGlobalCacheBuster } from "@/lib/cacheManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -238,6 +240,20 @@ export default function AdminDashboard() {
               <p className="text-muted-foreground mt-1">Manage your portfolio content</p>
             </div>
             <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  updateGlobalCacheBuster();
+                  toast({
+                    title: "Images Refreshed!",
+                    description: "All images will update on mobile and other browsers.",
+                  });
+                }}
+                data-testid="button-refresh-images"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Force Refresh Images
+              </Button>
               <Button variant="outline" onClick={() => setLocation("/")} data-testid="button-view-site">
                 <Home className="h-4 w-4 mr-2" />
                 View Site

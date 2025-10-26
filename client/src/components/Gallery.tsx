@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CachedImage } from "@/components/CachedImage";
 import { getGalleryImages, STORAGE_KEYS } from "@/lib/data";
 import type { GalleryImage } from "@shared/schema";
 
@@ -124,7 +125,7 @@ export function Gallery() {
               className="group relative overflow-hidden rounded-lg aspect-square hover-elevate active-elevate-2 bg-muted"
               data-testid={`image-gallery-${image.id}`}
             >
-              <img
+              <CachedImage
                 src={image.url}
                 alt={image.title || "Gallery image"}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -192,7 +193,7 @@ export function Gallery() {
             className="max-w-6xl max-h-[90vh] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <CachedImage
               src={selectedImage.url}
               alt={selectedImage.title || "Gallery image"}
               className="max-w-full max-h-[90vh] object-contain"

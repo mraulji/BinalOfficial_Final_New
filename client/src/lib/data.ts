@@ -1,4 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
+import { sharedDataManager, saveSharedImages } from "./sharedData";
 
 // Import stock images
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -191,13 +192,38 @@ export const ADMIN_CREDENTIALS = {
   password: "binal2024",
 };
 
-// Helper functions to get data from localStorage with fallback
+// Helper functions to get data from shared storage with fallback
 export const getCarouselImages = (): CarouselImage[] => {
+  // First try shared data (works across browsers)
+  const sharedData = sharedDataManager.getData();
+  if (sharedData?.carousel && sharedData.carousel.length > 0) {
+    return sharedData.carousel.map(img => ({
+      id: img.id,
+      url: img.url,
+      title: img.title || "",
+      subtitle: img.subtitle || ""
+    }));
+  }
+  
+  // Fallback to localStorage
   const stored = localStorage.getItem(STORAGE_KEYS.CAROUSEL);
   return stored ? JSON.parse(stored) : defaultCarouselImages;
 };
 
 export const getGalleryImages = (): GalleryImage[] => {
+  // First try shared data (works across browsers)
+  const sharedData = sharedDataManager.getData();
+  if (sharedData?.gallery && sharedData.gallery.length > 0) {
+    return sharedData.gallery.map(img => ({
+      id: img.id,
+      url: img.url,
+      title: img.title || "",
+      description: img.description || "",
+      category: (img.category as "wedding" | "events" | "portraits" | "commercial" | "all") || "all"
+    }));
+  }
+  
+  // Fallback to localStorage  
   const stored = localStorage.getItem(STORAGE_KEYS.GALLERY);
   return stored ? JSON.parse(stored) : defaultGalleryImages;
 };
@@ -217,21 +243,37 @@ export const getVideos = (): Video[] => {
   return stored ? JSON.parse(stored) : defaultVideos;
 };
 
-// Helper functions to save data to localStorage and notify components
-export const saveCarouselImages = (images: CarouselImage[]) => {
+// Helper functions to save data to both localStorage and shared storage
+export const saveCarouselImages = async (images: CarouselImage[]) => {
+  // Save to localStorage (for admin browser)
   localStorage.setItem(STORAGE_KEYS.CAROUSEL, JSON.stringify(images));
+  
+  // Save to shared storage (for all browsers)
+  const currentGallery = getGalleryImages();
+  await saveSharedImages(images, currentGallery);
+  
   // Dispatch event to notify components of the change
   window.dispatchEvent(new CustomEvent('localStorage-update', {
     detail: { key: STORAGE_KEYS.CAROUSEL, value: images }
   }));
+  
+  console.log('💾 Carousel images saved to shared storage - visible on all browsers');
 };
 
-export const saveGalleryImages = (images: GalleryImage[]) => {
+export const saveGalleryImages = async (images: GalleryImage[]) => {
+  // Save to localStorage (for admin browser)
   localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(images));
+  
+  // Save to shared storage (for all browsers)
+  const currentCarousel = getCarouselImages();
+  await saveSharedImages(currentCarousel, images);
+  
   // Dispatch event to notify components of the change
   window.dispatchEvent(new CustomEvent('localStorage-update', {
     detail: { key: STORAGE_KEYS.GALLERY, value: images }
   }));
+  
+  console.log('💾 Gallery images saved to shared storage - visible on all browsers');
 };
 
 export const saveServices = (services: Service[]) => {
