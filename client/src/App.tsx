@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeCacheManagement } from "./lib/cacheManager";
-import { initializeAutoUrlSync } from "./lib/autoUrlSync";
+import { initializeGlobalConfig } from "./lib/globalConfig";
 import { useEffect } from "react";
 import Home from "@/pages/Home";
 import AdminLogin from "@/pages/AdminLogin";
@@ -24,11 +24,11 @@ function Router() {
 
 function App() {
   useEffect(() => {
-    // Initialize auto URL sync and cache management
-    initializeAutoUrlSync();
+    // Initialize global config and cache management
+    initializeGlobalConfig();
     initializeCacheManagement();
     
-    console.log('🌐 App initialized with auto URL sync');
+    console.log('🌐 App initialized with global config sync');
   }, []);
 
   return (

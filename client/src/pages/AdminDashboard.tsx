@@ -18,7 +18,7 @@ import {
 import { SimpleImageUpload } from "@/components/SimpleImageUpload";
 import { EmailSetup } from "@/components/EmailSetup";
 import { updateGlobalCacheBuster } from "@/lib/cacheManager";
-import { autoUrlSync } from "@/lib/autoUrlSync";
+import { globalConfigManager } from "@/lib/globalConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -246,17 +246,20 @@ export default function AdminDashboard() {
                 onClick={() => {
                   updateGlobalCacheBuster();
                   
-                  // Share current URL for cross-browser access
-                  const currentUrl = window.location.href;
-                  navigator.clipboard?.writeText(currentUrl).then(() => {
+                  // Generate sync URL with all image mappings in URL hash
+                  const currentBaseUrl = window.location.origin + window.location.pathname;
+                  // The globalConfigManager will automatically update the URL hash
+                  const syncUrl = `${currentBaseUrl}${window.location.hash}`;
+                  
+                  navigator.clipboard?.writeText(syncUrl).then(() => {
                     toast({
-                      title: "URL Copied!",
-                      description: "Share this URL to sync images on other browsers. Images refreshed!",
+                      title: "Sync URL Copied!",
+                      description: "Share this URL to instantly sync all images on other browsers/devices!",
                     });
                   }).catch(() => {
                     toast({
                       title: "Images Refreshed!",
-                      description: "Copy current URL to sync images on other browsers.",
+                      description: "Global config updated for cross-browser sync.",
                     });
                   });
                 }}
