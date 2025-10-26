@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCarouselImages } from "@/lib/data";
+import { getCarouselImages, STORAGE_KEYS } from "@/lib/data";
 import type { CarouselImage } from "@shared/schema";
 
 export function HeroCarousel() {
@@ -10,7 +10,21 @@ export function HeroCarousel() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   useEffect(() => {
+    // Load initial images
     setImages(getCarouselImages());
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === STORAGE_KEYS.CAROUSEL) {
+        setImages(e.detail.value);
+      }
+    };
+
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+    };
   }, []);
 
   const goToNext = useCallback(() => {

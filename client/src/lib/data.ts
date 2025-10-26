@@ -1,4 +1,4 @@
-import type { GalleryImage, CarouselImage, Service, TeamMember, Video } from "@shared/schema";
+import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
 
 // Import stock images
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -156,21 +156,21 @@ export const defaultTeamMembers: TeamMember[] = [
 export const defaultVideos: Video[] = [
   {
     id: "v1",
-    youtubeId: "dQw4w9WgXcQ",
+    youtubeId: "9No-FiEInLA", // Example wedding photography video
     title: "Wedding Highlights - Riya & Arjun",
-    thumbnail: carousel1,
+    thumbnail: "",
   },
   {
-    id: "v2",
-    youtubeId: "dQw4w9WgXcQ",
+    id: "v2", 
+    youtubeId: "ZmD3F_rdj8s", // Example photography video
     title: "Corporate Event Coverage",
-    thumbnail: event1,
+    thumbnail: "",
   },
   {
     id: "v3",
-    youtubeId: "dQw4w9WgXcQ",
-    title: "Pre-Wedding Story",
-    thumbnail: carousel3,
+    youtubeId: "Mfz3kFNVopk", // Example photography video
+    title: "Pre-Wedding Story", 
+    thumbnail: "",
   },
 ];
 
@@ -181,6 +181,7 @@ export const STORAGE_KEYS = {
   SERVICES: "binal_services",
   TEAM: "binal_team_members",
   VIDEOS: "binal_videos",
+  BUDGET_ENTRIES: "binal_budget_entries",
   AUTH: "binal_admin_auth",
 };
 
@@ -216,23 +217,90 @@ export const getVideos = (): Video[] => {
   return stored ? JSON.parse(stored) : defaultVideos;
 };
 
-// Helper functions to save data to localStorage
+// Helper functions to save data to localStorage and notify components
 export const saveCarouselImages = (images: CarouselImage[]) => {
   localStorage.setItem(STORAGE_KEYS.CAROUSEL, JSON.stringify(images));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.CAROUSEL, value: images }
+  }));
 };
 
 export const saveGalleryImages = (images: GalleryImage[]) => {
   localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(images));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.GALLERY, value: images }
+  }));
 };
 
 export const saveServices = (services: Service[]) => {
   localStorage.setItem(STORAGE_KEYS.SERVICES, JSON.stringify(services));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.SERVICES, value: services }
+  }));
 };
 
 export const saveTeamMembers = (members: TeamMember[]) => {
   localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(members));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.TEAM, value: members }
+  }));
 };
 
 export const saveVideos = (videos: Video[]) => {
   localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.VIDEOS, value: videos }
+  }));
+};
+
+// Default Budget Entries for testing
+const defaultBudgetEntries: BudgetPlannerEntry[] = [
+  {
+    id: "budget-sample-1",
+    name: "Priya Sharma",
+    email: "priya.sharma@email.com",
+    phone: "+91 98765 43210",
+    eventDate: "2024-12-15",
+    services: [
+      {
+        serviceId: "s1",
+        serviceName: "Wedding Photography",
+        quantity: 1,
+        unitPrice: 50000,
+        totalPrice: 50000
+      },
+      {
+        serviceId: "s2",
+        serviceName: "Pre-Wedding Shoot",
+        quantity: 1,
+        unitPrice: 25000,
+        totalPrice: 25000
+      }
+    ],
+    totalAmount: 75000,
+    additionalNotes: "Need outdoor and indoor shots. Prefer natural lighting for pre-wedding shoot.",
+    status: "pending",
+    submittedAt: new Date().toISOString(),
+  }
+];
+
+export const getBudgetPlannerEntries = (): BudgetPlannerEntry[] => {
+  const stored = localStorage.getItem(STORAGE_KEYS.BUDGET_ENTRIES);
+  console.log('getBudgetPlannerEntries: stored data:', stored);
+  const result = stored ? JSON.parse(stored) : defaultBudgetEntries;
+  console.log('getBudgetPlannerEntries: parsed result:', result);
+  return result;
+};
+
+export const saveBudgetPlannerEntries = (entries: BudgetPlannerEntry[]) => {
+  localStorage.setItem(STORAGE_KEYS.BUDGET_ENTRIES, JSON.stringify(entries));
+  // Dispatch event to notify components of the change
+  window.dispatchEvent(new CustomEvent('localStorage-update', {
+    detail: { key: STORAGE_KEYS.BUDGET_ENTRIES, value: entries }
+  }));
 };

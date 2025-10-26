@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { getServices } from "@/lib/data";
-import type { Service } from "@shared/schema";
-import emailjs from "@emailjs/browser";
+import { getServices, STORAGE_KEYS } from "@/lib/data";
+import { sendBudgetEmail } from "@/lib/emailService";
+import type { Service, BudgetPlannerEntry } from "@shared/schema";
 
 export function BudgetCalculator() {
   const [services, setServices] = useState<Service[]>([]);
@@ -24,7 +24,21 @@ export function BudgetCalculator() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Load initial services
     setServices(getServices());
+
+    // Listen for localStorage changes for services
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === STORAGE_KEYS.SERVICES) {
+        setServices(e.detail.value);
+      }
+    };
+
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+    };
   }, []);
 
   const updateQuantity = (serviceId: string, delta: number) => {
@@ -78,30 +92,61 @@ export function BudgetCalculator() {
     setIsSubmitting(true);
 
     try {
-      // Prepare email content
-      const servicesList = Object.entries(selectedServices)
+      // Prepare services for budget entry
+      const servicesForBudget = Object.entries(selectedServices)
         .map(([serviceId, quantity]) => {
           const service = services.find((s) => s.id === serviceId);
-          if (!service) return "";
-          return `${service.name} x ${quantity} = ${formatPrice(service.basePrice * quantity)}`;
+          if (!service) return null;
+          return {
+            serviceId: service.id,
+            serviceName: service.name,
+            quantity,
+            unitPrice: service.basePrice,
+            totalPrice: service.basePrice * quantity,
+          };
         })
-        .filter(Boolean)
-        .join("\n");
+        .filter(Boolean);
 
-      const emailParams = {
-        to_email: formData.email,
-        from_name: formData.name,
-        from_email: formData.email,
-        phone: formData.phone || "Not provided",
-        event_date: formData.eventDate || "Not specified",
-        services: servicesList,
-        total: formatPrice(calculateTotal()),
-        additional_notes: formData.additionalNotes || "None",
+      // Create budget entry for admin panel
+      const budgetEntry: BudgetPlannerEntry = {
+        id: `budget-${Date.now()}`,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || "",
+        eventDate: formData.eventDate || "",
+        services: servicesForBudget,
+        totalAmount: calculateTotal(),
+        additionalNotes: formData.additionalNotes || "",
+        status: "pending",
+        submittedAt: new Date().toISOString(),
       };
 
-      // Note: EmailJS requires configuration with service ID, template ID, and public key
-      // This is a placeholder - actual implementation will be done in integration phase
-      console.log("Budget quote request:", emailParams);
+      // Save to localStorage for admin panel
+      const existingEntries = JSON.parse(localStorage.getItem(STORAGE_KEYS.BUDGET_ENTRIES) || "[]");
+      const updatedEntries = [...existingEntries, budgetEntry];
+      localStorage.setItem(STORAGE_KEYS.BUDGET_ENTRIES, JSON.stringify(updatedEntries));
+      
+      // Dispatch event to notify admin dashboard
+      window.dispatchEvent(new CustomEvent('localStorage-update', {
+        detail: { key: STORAGE_KEYS.BUDGET_ENTRIES, value: updatedEntries }
+      }));
+
+      // Send email notification
+      try {
+        await sendBudgetEmail({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          eventDate: formData.eventDate,
+          services: servicesForBudget,
+          totalAmount: calculateTotal(),
+          additionalNotes: formData.additionalNotes,
+        });
+        console.log("Budget email sent successfully");
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        // Don't block the form submission if email fails
+      }
 
       toast({
         title: "Quote request sent!",

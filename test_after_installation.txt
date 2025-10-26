@@ -1,0 +1,17 @@
+# Test these commands after Node.js installation:
+
+# Check Node.js version
+node --version
+
+# Check npm version  
+npm --version
+
+# If both work, then install your project dependencies:
+npm install
+
+# Then you can run your development server:
+npm run dev
+
+# Or build and start production:
+npm run build
+npm start

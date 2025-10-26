@@ -1,14 +1,86 @@
 import { useState, useEffect } from "react";
 import { Play } from "lucide-react";
-import { getVideos } from "@/lib/data";
+import { getVideos, STORAGE_KEYS } from "@/lib/data";
 import type { Video } from "@shared/schema";
+
+// VideoThumbnail component with multiple fallback methods
+function VideoThumbnail({ video }: { video: Video }) {
+  const [useIframe, setUseIframe] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  if (!video.youtubeId) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+        <div className="text-center">
+          <Play className="h-12 w-12 text-primary/60 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Video Preview</p>
+        </div>
+      </div>
+    );
+  }
+
+  // First try iframe approach (like admin dashboard)
+  if (useIframe && !imageError) {
+    return (
+      <div className="w-full h-full relative overflow-hidden">
+        <iframe
+          src={`https://www.youtube.com/embed/${video.youtubeId}`}
+          className="w-full h-full pointer-events-none transition-transform duration-500 group-hover:scale-110"
+          style={{ border: 'none' }}
+          loading="lazy"
+          onError={() => setUseIframe(false)}
+        />
+        {/* Overlay to prevent iframe interaction */}
+        <div className="absolute inset-0 bg-transparent cursor-pointer" />
+      </div>
+    );
+  }
+
+  // Fallback to thumbnail image
+  const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+  
+  if (!imageError) {
+    return (
+      <img
+        src={thumbnailUrl}
+        alt={video.title}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        onError={() => setImageError(true)}
+        loading="lazy"
+      />
+    );
+  }
+
+  // Final fallback
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+      <div className="text-center">
+        <Play className="h-12 w-12 text-primary/60 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Video Preview</p>
+      </div>
+    </div>
+  );
+}
 
 export function VideoSection() {
   const [videos, setVideos] = useState<Video[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   useEffect(() => {
+    // Load initial videos
     setVideos(getVideos());
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === STORAGE_KEYS.VIDEOS) {
+        setVideos(e.detail.value);
+      }
+    };
+
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+    };
   }, []);
 
   return (
@@ -29,17 +101,15 @@ export function VideoSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {videos.map((video) => (
-            <button
+            <a
               key={video.id}
-              onClick={() => setSelectedVideo(video)}
-              className="group relative aspect-video overflow-hidden rounded-lg hover-elevate active-elevate-2 bg-muted"
+              href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-video overflow-hidden rounded-lg hover-elevate active-elevate-2 bg-muted block"
               data-testid={`video-${video.id}`}
             >
-              <img
-                src={video.thumbnail || `https://img.youtube.com/vi/${video.youtubeId}/maxresdefault.jpg`}
-                alt={video.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
+              <VideoThumbnail video={video} />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
                 <div className="w-16 h-16 bg-primary/90 group-hover:bg-primary rounded-full flex items-center justify-center transition-all">
                   <Play className="h-8 w-8 text-white ml-1" fill="white" />
@@ -48,7 +118,7 @@ export function VideoSection() {
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <h3 className="font-serif text-lg font-bold text-white">{video.title}</h3>
               </div>
-            </button>
+            </a>
           ))}
         </div>
 
@@ -58,28 +128,6 @@ export function VideoSection() {
           </div>
         )}
       </div>
-
-      {/* Video Modal */}
-      {selectedVideo && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setSelectedVideo(null)}
-        >
-          <div
-            className="w-full max-w-5xl aspect-video"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}?autoplay=1`}
-              title={selectedVideo.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full rounded-lg"
-              data-testid="iframe-youtube"
-            />
-          </div>
-        </div>
-      )}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Camera, Video, Plane, Frame, Book, Heart } from "lucide-react";
-import { getServices } from "@/lib/data";
+import { getServices, STORAGE_KEYS } from "@/lib/data";
 import type { Service } from "@shared/schema";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -16,7 +16,21 @@ export function ServicesSection() {
   const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
+    // Load initial services
     setServices(getServices());
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === STORAGE_KEYS.SERVICES) {
+        setServices(e.detail.value);
+      }
+    };
+
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+    };
   }, []);
 
   const formatPrice = (price: number) => {

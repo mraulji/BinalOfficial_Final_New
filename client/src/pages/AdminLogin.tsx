@@ -25,7 +25,7 @@ export default function AdminLogin() {
         title: "Login successful",
         description: "Welcome to the admin panel!",
       });
-      setLocation("/admin/dashboard");
+      setLocation("/admin");
     } else {
       toast({
         title: "Login failed",

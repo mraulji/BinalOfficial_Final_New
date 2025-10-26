@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getGalleryImages } from "@/lib/data";
+import { getGalleryImages, STORAGE_KEYS } from "@/lib/data";
 import type { GalleryImage } from "@shared/schema";
 
 const categories = [
@@ -18,12 +18,43 @@ export function Gallery() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
   useEffect(() => {
+    // Load initial images
     setImages(getGalleryImages());
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === STORAGE_KEYS.GALLERY) {
+        setImages(e.detail.value);
+      }
+    };
+
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+
+    return () => {
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+    };
   }, []);
 
   const filteredImages = selectedCategory === "all"
-    ? images
-    : images.filter((img) => img.category === selectedCategory);
+    ? images.filter((img) => {
+        // For "All" button: only show images where primaryCategory is NOT "none" (blank)
+        // If primaryCategory is "none", the image should only appear in specific categories
+        console.log(`🌟 ALL filter - Image ${img.id}: primary=${img.primaryCategory}, should show: ${img.primaryCategory !== "none"}`);
+        return img.primaryCategory !== "none";
+      })
+    : images.filter((img) => {
+        console.log(`🔍 Category filter ${selectedCategory} - Image ${img.id}: primary=${img.primaryCategory}, secondary=${img.secondaryCategory}`);
+        
+        // For specific category buttons:
+        // Show if secondaryCategory matches the selected category
+        // OR if primaryCategory matches (and it's not "none")
+        const matchesSecondary = img.secondaryCategory === selectedCategory;
+        const matchesPrimary = img.primaryCategory === selectedCategory;
+        const shouldShow = matchesSecondary || matchesPrimary;
+        
+        console.log(`📋 Image ${img.id} shouldShow: ${shouldShow} (matchesSecondary: ${matchesSecondary}, matchesPrimary: ${matchesPrimary})`);
+        return shouldShow;
+      });
 
   const openLightbox = (image: GalleryImage) => {
     setSelectedImage(image);

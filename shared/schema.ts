@@ -5,6 +5,8 @@ export const galleryImageSchema = z.object({
   id: z.string(),
   url: z.string(),
   category: z.enum(["wedding", "events", "portraits", "commercial", "all"]),
+  primaryCategory: z.enum(["none", "wedding", "events", "portraits", "commercial", "all"]).optional(),
+  secondaryCategory: z.enum(["wedding", "events", "portraits", "commercial", "all"]).optional(),
   title: z.string().optional(),
   description: z.string().optional(),
 });
@@ -78,6 +80,29 @@ export const budgetCalculatorSchema = z.object({
 });
 
 export type BudgetCalculator = z.infer<typeof budgetCalculatorSchema>;
+
+// Budget Planner Entry Schema (for admin to manage submitted budget requests)
+export const budgetPlannerEntrySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  phone: z.string().optional(),
+  services: z.array(z.object({
+    serviceId: z.string(),
+    serviceName: z.string(),
+    quantity: z.number(),
+    unitPrice: z.number(),
+    totalPrice: z.number(),
+  })),
+  totalAmount: z.number(),
+  eventDate: z.string().optional(),
+  additionalNotes: z.string().optional(),
+  status: z.enum(["pending", "contacted", "quoted", "booked", "completed"]),
+  submittedAt: z.string(),
+  updatedAt: z.string().optional(),
+});
+
+export type BudgetPlannerEntry = z.infer<typeof budgetPlannerEntrySchema>;
 
 // Admin Auth Schema
 export const adminAuthSchema = z.object({

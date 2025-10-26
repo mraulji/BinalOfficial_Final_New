@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { initEmailJS, sendContactEmail, displayEmailSetupInstructions } from "@/lib/emailService";
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,13 @@ export function ContactSection() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize EmailJS
+    initEmailJS();
+    // Show setup instructions in console
+    displayEmailSetupInstructions();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +40,8 @@ export function ContactSection() {
     setIsSubmitting(true);
 
     try {
-      // Note: EmailJS integration will be completed in phase 3
-      console.log("Contact form submission:", formData);
+      // Send email notification
+      await sendContactEmail(formData);
 
       toast({
         title: "Message sent successfully!",

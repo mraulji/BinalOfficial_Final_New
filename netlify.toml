@@ -1,0 +1,31 @@
+# Netlify Configuration for Photography Portfolio
+
+# Build settings
+[build]
+  command = "npm run build"
+  publish = "dist/public"
+
+# Redirect all routes to index.html for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Environment variables (you can set these in Netlify dashboard)
+# EMAIL_SERVICE_ID = "service_zff4g6c"
+# EMAIL_TEMPLATE_ID = "template_kpl9w36"
+# EMAIL_PUBLIC_KEY = "lJ8rkJpLdwI4ZScnt"
