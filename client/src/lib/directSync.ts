@@ -30,11 +30,14 @@ class DirectSyncManager {
   getImageUrl(id: string, defaultUrl: string): string {
     const syncUrl = this.syncData.images[id];
     
+    console.log(`🔍 getImageUrl check: id="${id}", defaultUrl="${defaultUrl?.substring(0, 50)}...", syncUrl="${syncUrl?.substring(0, 50)}..."`);
+    
     if (syncUrl && syncUrl !== defaultUrl) {
       console.log(`✅ DIRECT SYNC OVERRIDE: ${id} → ${syncUrl}`);
       return syncUrl;
     }
     
+    console.log(`📝 NO OVERRIDE: Using default for ${id}`);
     return defaultUrl;
   }
 
