@@ -83,6 +83,12 @@ class DirectSyncManager {
         this.syncData.lastUpdated = Date.now();
         localStorage.setItem('direct_sync_data', JSON.stringify(this.syncData));
         console.log(`✅ Loaded sync data from URL: ${Object.keys(this.syncData.images).length} images`);
+        
+        // Force immediate page reload to apply sync data
+        console.log('🔄 URL sync data loaded - reloading page in 1 second to apply changes');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     }
     
