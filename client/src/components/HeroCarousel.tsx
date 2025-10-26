@@ -2,29 +2,43 @@ import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CachedImage } from "@/components/CachedImage";
-import { getCarouselImages, STORAGE_KEYS } from "@/lib/data";
+import { getCarouselImages } from "@/lib/supabaseData";
 import type { CarouselImage } from "@shared/schema";
 
 export function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [images, setImages] = useState<CarouselImage[]>([]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load initial images
-    setImages(getCarouselImages());
-
-    // Listen for localStorage changes
-    const handleStorageChange = (e: CustomEvent) => {
-      if (e.detail.key === STORAGE_KEYS.CAROUSEL) {
-        setImages(e.detail.value);
+    // Load images from Supabase
+    const loadImages = async () => {
+      try {
+        setLoading(true);
+        const carouselImages = await getCarouselImages();
+        setImages(carouselImages);
+      } catch (error) {
+        console.error('Error loading carousel images:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
+    loadImages();
+
+    // Listen for real-time updates
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'binal_carousel_images' && e.newValue) {
+        const updatedImages = JSON.parse(e.newValue);
+        setImages(updatedImages);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

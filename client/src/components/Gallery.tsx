@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CachedImage } from "@/components/CachedImage";
-import { getGalleryImages, STORAGE_KEYS } from "@/lib/data";
+import { getGalleryImages } from "@/lib/supabaseData";
 import type { GalleryImage } from "@shared/schema";
 
 const categories = [
@@ -17,15 +17,29 @@ export function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load initial images
-    setImages(getGalleryImages());
+    // Load images from Supabase
+    const loadImages = async () => {
+      try {
+        setLoading(true);
+        const galleryImages = await getGalleryImages();
+        setImages(galleryImages);
+      } catch (error) {
+        console.error('Error loading gallery images:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Listen for localStorage changes
-    const handleStorageChange = (e: CustomEvent) => {
-      if (e.detail.key === STORAGE_KEYS.GALLERY) {
-        setImages(e.detail.value);
+    loadImages();
+
+    // Listen for real-time updates
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'binal_gallery_images' && e.newValue) {
+        const updatedImages = JSON.parse(e.newValue);
+        setImages(updatedImages);
       }
     };
 

@@ -29,16 +29,12 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   getCarouselImages, 
   getGalleryImages, 
-  getServices, 
-  getVideos,
   getBudgetPlannerEntries,
-  saveCarouselImages,
-  saveGalleryImages,
-  saveServices,
-  saveVideos,
-  saveBudgetPlannerEntries,
-  STORAGE_KEYS
-} from "@/lib/data";
+  updateCarouselImage,
+  updateGalleryImage,
+  saveBudgetEntry
+} from "@/lib/supabaseData";
+import { getServices, getVideos } from "@/lib/data";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
 
 export default function AdminDashboard() {

@@ -30,9 +30,9 @@ class DirectSyncManager {
   getImageUrl(id: string, defaultUrl: string): string {
     const syncUrl = this.syncData.images[id];
     
-    console.log(`🔍 getImageUrl check: id="${id}", defaultUrl="${defaultUrl?.substring(0, 50)}...", syncUrl="${syncUrl?.substring(0, 50)}..."`);
+    console.log(`🔍 getImageUrl check: id="${id}", defaultUrl="${defaultUrl?.substring(0, 50)}...", syncUrl="${syncUrl ? syncUrl.substring(0, 50) : 'undefined'}..."`);
     
-    if (syncUrl && syncUrl !== defaultUrl) {
+    if (syncUrl) {
       console.log(`✅ DIRECT SYNC OVERRIDE: ${id} → ${syncUrl}`);
       return syncUrl;
     }
@@ -69,13 +69,23 @@ class DirectSyncManager {
     
     // Try URL parameters first (for sharing)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.toString()) {
-      console.log(`🔍 Found URL parameters: ${urlParams.toString()}`);
+    const urlParamString = urlParams.toString();
+    
+    console.log(`🔍 Checking URL parameters: "${urlParamString}"`);
+    console.log(`🔍 Full URL: ${window.location.href}`);
+    
+    if (urlParamString) {
+      console.log(`🔍 Found URL parameters, processing...`);
       
       urlParams.forEach((url, id) => {
+        console.log(`🔍 Processing param: id="${id}", url="${url.substring(0, 100)}..."`);
+        
         if (url.includes('cloudinary.com')) {
           this.syncData.images[id] = url;
           loaded = true;
+          console.log(`✅ Added to sync data: ${id} → ${url}`);
+        } else {
+          console.log(`❌ Skipping non-Cloudinary URL: ${url}`);
         }
       });
       
@@ -83,13 +93,18 @@ class DirectSyncManager {
         this.syncData.lastUpdated = Date.now();
         localStorage.setItem('direct_sync_data', JSON.stringify(this.syncData));
         console.log(`✅ Loaded sync data from URL: ${Object.keys(this.syncData.images).length} images`);
+        console.log(`🔗 Final sync data:`, this.syncData.images);
         
         // Force immediate page reload to apply sync data
         console.log('🔄 URL sync data loaded - reloading page in 1 second to apply changes');
         setTimeout(() => {
           window.location.reload();
         }, 1000);
+      } else {
+        console.log('❌ No valid Cloudinary URLs found in parameters');
       }
+    } else {
+      console.log('🔍 No URL parameters found');
     }
     
     // Fallback to localStorage

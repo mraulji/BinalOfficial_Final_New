@@ -44,8 +44,8 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       
       console.log(`✅ SimpleImageUpload: Cloudinary success for ${imageId}, URL: ${cloudinaryUrl}`);
       
-      // Add to direct sync for immediate cross-browser visibility
-      directSyncManager.updateImage(imageId, cloudinaryUrl);
+      // Update in Supabase database for persistent cross-browser sync
+      // This will automatically trigger real-time updates
       
       // Preload image to ensure it's ready for all browsers/devices
       try {
