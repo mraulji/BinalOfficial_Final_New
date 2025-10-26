@@ -5,6 +5,10 @@ export const CLOUDINARY_CONFIG = {
   UPLOAD_PRESET: 'binal_unsigned', // Your custom unsigned preset
   API_KEY: '839428298188293', // Your API key
   
+  // File size limits (Cloudinary free tier: 10MB)
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes
+  COMPRESSION_QUALITY: 0.8, // 80% quality for compression
+  
   // Folder structure for different image types
   FOLDERS: {
     CAROUSEL: 'binal_showcase/carousel',
@@ -12,11 +16,66 @@ export const CLOUDINARY_CONFIG = {
   }
 };
 
-// Upload image to Cloudinary with fallback presets
+// Compress image file if it's too large
+const compressImage = (file: File, maxSize: number, quality: number = 0.8): Promise<File> => {
+  return new Promise((resolve) => {
+    if (file.size <= maxSize) {
+      resolve(file); // File is already small enough
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate new dimensions to reduce file size
+      const ratio = Math.sqrt(maxSize / file.size);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+
+      // Draw compressed image
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Convert to blob with compression
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
+            console.log(`📦 Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB`);
+            resolve(compressedFile);
+          } else {
+            resolve(file); // Fallback to original if compression fails
+          }
+        },
+        file.type,
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      resolve(file); // Fallback to original if image loading fails
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+// Upload image to Cloudinary with automatic compression
 export const uploadToCloudinary = async (file: File, folder: string): Promise<string> => {
   // Validate configuration
   if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
     throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
+  }
+
+  // Check file size and compress if necessary
+  let fileToUpload = file;
+  if (file.size > CLOUDINARY_CONFIG.MAX_FILE_SIZE) {
+    console.log(`📏 File ${file.name} is ${(file.size / 1024 / 1024).toFixed(1)}MB, compressing...`);
+    fileToUpload = await compressImage(file, CLOUDINARY_CONFIG.MAX_FILE_SIZE, CLOUDINARY_CONFIG.COMPRESSION_QUALITY);
   }
 
   // Try multiple presets in order of preference
@@ -31,7 +90,7 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
     
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload); // Use compressed file
       
       if (preset) {
         formData.append('upload_preset', preset);

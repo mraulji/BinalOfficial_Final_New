@@ -19,6 +19,17 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
   const handleFileUpload = async (file: File) => {
     console.log(`🔧 SimpleImageUpload: Starting Cloudinary upload for ${imageId}`);
     
+    // Check file size and show appropriate message
+    const fileSizeMB = (file.size / 1024 / 1024);
+    const maxSizeMB = 10;
+    
+    if (fileSizeMB > maxSizeMB) {
+      toast({
+        title: "Large file detected",
+        description: `File is ${fileSizeMB.toFixed(1)}MB. Compressing to fit 10MB limit...`,
+      });
+    }
+    
     setIsUploading(true);
     try {
       // Determine folder based on context
@@ -26,7 +37,7 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
         ? CLOUDINARY_CONFIG.FOLDERS.CAROUSEL 
         : CLOUDINARY_CONFIG.FOLDERS.GALLERY;
       
-      // Upload to Cloudinary
+      // Upload to Cloudinary (with automatic compression if needed)
       const cloudinaryUrl = await uploadToCloudinary(file, folder);
       
       console.log(`✅ SimpleImageUpload: Cloudinary success for ${imageId}, URL: ${cloudinaryUrl}`);
@@ -35,13 +46,25 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       
       toast({
         title: "Image uploaded successfully!",
-        description: "Your image is now stored in the cloud.",
+        description: fileSizeMB > maxSizeMB 
+          ? "Large image was compressed and uploaded to the cloud."
+          : "Your image is now stored in the cloud.",
       });
     } catch (error) {
       console.error(`❌ Cloudinary upload error for ${imageId}:`, error);
+      
+      let errorMessage = "Please try a smaller image or check your connection.";
+      if (error instanceof Error) {
+        if (error.message.includes("File size too large")) {
+          errorMessage = "Image is too large. Please use an image smaller than 10MB.";
+        } else if (error.message.includes("Invalid image")) {
+          errorMessage = "Invalid image format. Please use JPG, PNG, or WebP.";
+        }
+      }
+      
       toast({
         title: "Upload failed",
-        description: "Please check your Cloudinary configuration or try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
