@@ -1,9 +1,9 @@
 // Cloudinary Configuration for Live Image Uploads
 export const CLOUDINARY_CONFIG = {
-  // Environment variables - set these in Netlify and local .env
-  CLOUD_NAME: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo',
-  UPLOAD_PRESET: 'ml_default', // Default unsigned preset (works immediately)
-  API_KEY: import.meta.env.VITE_CLOUDINARY_API_KEY || '', // Optional for signed uploads
+  // Your Cloudinary credentials
+  CLOUD_NAME: 'dwm2bmzxd',
+  UPLOAD_PRESET: 'binal_unsigned', // Your custom unsigned preset
+  API_KEY: '839428298188293', // Your API key
   
   // Folder structure for different image types
   FOLDERS: {
@@ -12,38 +12,67 @@ export const CLOUDINARY_CONFIG = {
   }
 };
 
-// Upload image to Cloudinary
+// Upload image to Cloudinary with fallback presets
 export const uploadToCloudinary = async (file: File, folder: string): Promise<string> => {
   // Validate configuration
   if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
     throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
   }
 
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', CLOUDINARY_CONFIG.UPLOAD_PRESET);
-  formData.append('folder', folder);
+  // Try multiple presets in order of preference
+  const presetsToTry = [
+    CLOUDINARY_CONFIG.UPLOAD_PRESET, // Custom preset
+    'ml_default',                     // Cloudinary default
+    '',                              // No preset (might work for some accounts)
+  ];
 
-  try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
+  for (let i = 0; i < presetsToTry.length; i++) {
+    const preset = presetsToTry[i];
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      if (preset) {
+        formData.append('upload_preset', preset);
       }
-    );
+      
+      if (folder) {
+        formData.append('folder', folder);
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Cloudinary upload failed: ${response.status} - ${errorText}`);
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Upload successful with preset: ${preset || 'none'}`);
+        return data.secure_url;
+      } else {
+        const errorText = await response.text();
+        console.warn(`❌ Upload failed with preset '${preset}': ${response.status} - ${errorText}`);
+        
+        // If this is the last preset to try, throw the error
+        if (i === presetsToTry.length - 1) {
+          throw new Error(`All upload presets failed. Last error: ${response.status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      console.warn(`❌ Upload attempt ${i + 1} failed:`, error);
+      
+      // If this is the last preset to try, throw the error
+      if (i === presetsToTry.length - 1) {
+        throw error;
+      }
     }
-
-    const data = await response.json();
-    return data.secure_url; // Returns the uploaded image URL
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw error;
   }
+
+  throw new Error('All upload attempts failed');
 };
 
 // Upload image from URL (for existing functionality)
@@ -53,31 +82,58 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
     throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
   }
 
-  const formData = new FormData();
-  formData.append('file', imageUrl);
-  formData.append('upload_preset', CLOUDINARY_CONFIG.UPLOAD_PRESET);
-  formData.append('folder', folder);
+  // Try multiple presets in order of preference
+  const presetsToTry = [
+    CLOUDINARY_CONFIG.UPLOAD_PRESET, // Custom preset
+    'ml_default',                     // Cloudinary default
+    '',                              // No preset (might work for some accounts)
+  ];
 
-  try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
+  for (let i = 0; i < presetsToTry.length; i++) {
+    const preset = presetsToTry[i];
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', imageUrl);
+      
+      if (preset) {
+        formData.append('upload_preset', preset);
       }
-    );
+      
+      if (folder) {
+        formData.append('folder', folder);
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Cloudinary URL upload failed: ${response.status} - ${errorText}`);
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ URL upload successful with preset: ${preset || 'none'}`);
+        return data.secure_url;
+      } else {
+        const errorText = await response.text();
+        console.warn(`❌ URL upload failed with preset '${preset}': ${response.status} - ${errorText}`);
+        
+        if (i === presetsToTry.length - 1) {
+          throw new Error(`All upload presets failed for URL. Last error: ${response.status} - ${errorText}`);
+        }
+      }
+    } catch (error) {
+      console.warn(`❌ URL upload attempt ${i + 1} failed:`, error);
+      
+      if (i === presetsToTry.length - 1) {
+        throw error;
+      }
     }
-
-    const data = await response.json();
-    return data.secure_url;
-  } catch (error) {
-    console.error('Cloudinary URL upload error:', error);
-    throw error;
   }
+
+  throw new Error('All URL upload attempts failed');
 };
 
 // Setup instructions

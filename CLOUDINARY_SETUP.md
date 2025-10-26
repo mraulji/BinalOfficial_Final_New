@@ -8,12 +8,17 @@ Your website now uses Cloudinary for cloud image storage, which works perfectly 
 2. Sign up for a free account (provides 25GB storage and 25GB bandwidth per month)
 3. Verify your email address
 
-## Step 2: Get Your Credentials
-1. After logging in, go to your Cloudinary Dashboard
-2. You'll see your account details including:
-   - **Cloud Name** (e.g., `dxxxxxxxx`)
-   - **API Key** (e.g., `123456789012345`)
-   - **API Secret** (keep this private!)
+## Step 2: Create Upload Preset
+1. In your Cloudinary Dashboard, go to **Settings** (gear icon) → **Upload**
+2. Scroll down to **Upload presets** section
+3. Click **Add upload preset**
+4. Configure the preset:
+   - **Preset name**: `binal_unsigned`
+   - **Signing Mode**: **Unsigned** (important!)
+   - **Folder**: `binal_showcase` (optional)
+   - **Auto-create folders**: **Yes**
+   - Leave other settings as default
+5. Click **Save**
 
 ## Step 3: Configure Environment Variables
 
