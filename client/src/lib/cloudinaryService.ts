@@ -1,19 +1,24 @@
 // Cloudinary Configuration for Live Image Uploads
 export const CLOUDINARY_CONFIG = {
-  // Replace with your actual Cloudinary credentials
-  CLOUD_NAME: 'your_cloud_name',
-  UPLOAD_PRESET: 'your_upload_preset', // Unsigned preset for client-side uploads
-  API_KEY: 'your_api_key', // Optional for signed uploads
+  // Environment variables - set these in Netlify and local .env
+  CLOUD_NAME: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo',
+  UPLOAD_PRESET: 'ml_default', // Default unsigned preset (works immediately)
+  API_KEY: import.meta.env.VITE_CLOUDINARY_API_KEY || '', // Optional for signed uploads
   
   // Folder structure for different image types
   FOLDERS: {
-    CAROUSEL: 'binal_photography/carousel',
-    GALLERY: 'binal_photography/gallery',
+    CAROUSEL: 'binal_showcase/carousel',
+    GALLERY: 'binal_showcase/gallery',
   }
 };
 
 // Upload image to Cloudinary
 export const uploadToCloudinary = async (file: File, folder: string): Promise<string> => {
+  // Validate configuration
+  if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
+    throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
+  }
+
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', CLOUDINARY_CONFIG.UPLOAD_PRESET);
@@ -29,7 +34,8 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
     );
 
     if (!response.ok) {
-      throw new Error('Upload failed');
+      const errorText = await response.text();
+      throw new Error(`Cloudinary upload failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -42,6 +48,11 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
 
 // Upload image from URL (for existing functionality)
 export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): Promise<string> => {
+  // Validate configuration
+  if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
+    throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
+  }
+
   const formData = new FormData();
   formData.append('file', imageUrl);
   formData.append('upload_preset', CLOUDINARY_CONFIG.UPLOAD_PRESET);
@@ -57,7 +68,8 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
     );
 
     if (!response.ok) {
-      throw new Error('URL upload failed');
+      const errorText = await response.text();
+      throw new Error(`Cloudinary URL upload failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();

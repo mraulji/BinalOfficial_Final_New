@@ -15,7 +15,6 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState(currentUrl || '');
   const { toast } = useToast();
-  const { toast } = useToast();
 
   const handleFileUpload = async (file: File) => {
     console.log(`🔧 SimpleImageUpload: Starting Cloudinary upload for ${imageId}`);
