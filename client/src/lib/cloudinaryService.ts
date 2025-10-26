@@ -5,8 +5,8 @@ export const CLOUDINARY_CONFIG = {
   UPLOAD_PRESET: 'binal_unsigned', // Your custom unsigned preset
   API_KEY: '839428298188293', // Your API key
   
-  // File size limits (Cloudinary free tier: 10MB)
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes
+  // File size limits (Cloudinary free tier: exactly 10,485,760 bytes)
+  MAX_FILE_SIZE: 10485760, // Exact Cloudinary limit in bytes
   COMPRESSION_QUALITY: 0.8, // 80% quality for compression
   
   // Folder structure for different image types
@@ -16,7 +16,7 @@ export const CLOUDINARY_CONFIG = {
   }
 };
 
-// Compress image file if it's too large
+// Compress image file if it's too large with aggressive compression
 const compressImage = (file: File, maxSize: number, quality: number = 0.8): Promise<File> => {
   return new Promise((resolve) => {
     if (file.size <= maxSize) {
@@ -29,31 +29,61 @@ const compressImage = (file: File, maxSize: number, quality: number = 0.8): Prom
     const img = new Image();
 
     img.onload = () => {
-      // Calculate new dimensions to reduce file size
-      const ratio = Math.sqrt(maxSize / file.size);
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
+      // More aggressive compression - target 80% of max size for safety buffer
+      const targetSize = maxSize * 0.8; // Leave 20% buffer
+      const ratio = Math.sqrt(targetSize / file.size);
+      
+      canvas.width = Math.floor(img.width * ratio);
+      canvas.height = Math.floor(img.height * ratio);
 
-      // Draw compressed image
-      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // Ensure minimum dimensions
+      if (canvas.width < 300) {
+        const aspectRatio = img.height / img.width;
+        canvas.width = 300;
+        canvas.height = Math.floor(300 * aspectRatio);
+      }
 
-      // Convert to blob with compression
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: file.type,
-              lastModified: Date.now(),
-            });
-            console.log(`📦 Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB`);
-            resolve(compressedFile);
-          } else {
-            resolve(file); // Fallback to original if compression fails
-          }
-        },
-        file.type,
-        quality
-      );
+      // Draw compressed image with better quality settings
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+
+      // Try progressively lower quality until size is acceptable
+      const tryCompress = (attemptQuality: number) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob && blob.size <= maxSize) {
+              const compressedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now(),
+              });
+              console.log(`📦 Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(1)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB (${(attemptQuality * 100).toFixed(0)}% quality)`);
+              resolve(compressedFile);
+            } else if (attemptQuality > 0.3) {
+              // Try lower quality
+              tryCompress(attemptQuality - 0.1);
+            } else {
+              // If even 30% quality is too large, reduce dimensions more
+              canvas.width = Math.floor(canvas.width * 0.8);
+              canvas.height = Math.floor(canvas.height * 0.8);
+              
+              if (ctx) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              }
+              
+              tryCompress(0.7); // Start over with lower dimensions
+            }
+          },
+          file.type,
+          attemptQuality
+        );
+      };
+
+      // Start compression attempt
+      tryCompress(quality);
     };
 
     img.onerror = () => {

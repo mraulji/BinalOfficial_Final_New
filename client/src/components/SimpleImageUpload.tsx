@@ -21,12 +21,13 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
     
     // Check file size and show appropriate message
     const fileSizeMB = (file.size / 1024 / 1024);
-    const maxSizeMB = 10;
+    const maxSizeBytes = 10485760; // Exact Cloudinary limit
+    const maxSizeMB = maxSizeBytes / 1024 / 1024;
     
-    if (fileSizeMB > maxSizeMB) {
+    if (file.size > maxSizeBytes) {
       toast({
         title: "Large file detected",
-        description: `File is ${fileSizeMB.toFixed(1)}MB. Compressing to fit 10MB limit...`,
+        description: `File is ${fileSizeMB.toFixed(1)}MB. Compressing to fit ${maxSizeMB.toFixed(1)}MB limit...`,
       });
     }
     
@@ -46,7 +47,7 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       
       toast({
         title: "Image uploaded successfully!",
-        description: fileSizeMB > maxSizeMB 
+        description: file.size > maxSizeBytes 
           ? "Large image was compressed and uploaded to the cloud."
           : "Your image is now stored in the cloud.",
       });
@@ -56,7 +57,7 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       let errorMessage = "Please try a smaller image or check your connection.";
       if (error instanceof Error) {
         if (error.message.includes("File size too large")) {
-          errorMessage = "Image is too large. Please use an image smaller than 10MB.";
+          errorMessage = `Image is too large. Please use an image smaller than ${maxSizeMB.toFixed(1)}MB.`;
         } else if (error.message.includes("Invalid image")) {
           errorMessage = "Invalid image format. Please use JPG, PNG, or WebP.";
         }
