@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { sharedDataManager, saveSharedImages } from "./sharedData";
+import { crossBrowserSync } from "./crossBrowserSync";
 
 // Import stock images
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -192,40 +192,37 @@ export const ADMIN_CREDENTIALS = {
   password: "binal2024",
 };
 
-// Helper functions to get data from shared storage with fallback
+// Helper functions to get data with cross-browser updates
 export const getCarouselImages = (): CarouselImage[] => {
-  // First try shared data (works across browsers)
-  const sharedData = sharedDataManager.getData();
-  if (sharedData?.carousel && sharedData.carousel.length > 0) {
-    return sharedData.carousel.map(img => ({
-      id: img.id,
-      url: img.url,
-      title: img.title || "",
-      subtitle: img.subtitle || ""
-    }));
-  }
-  
-  // Fallback to localStorage
+  // Start with localStorage or default data
   const stored = localStorage.getItem(STORAGE_KEYS.CAROUSEL);
-  return stored ? JSON.parse(stored) : defaultCarouselImages;
+  const baseImages = stored ? JSON.parse(stored) : defaultCarouselImages;
+  
+  // Apply cross-browser updates
+  return baseImages.map((img: CarouselImage) => {
+    const updatedUrl = crossBrowserSync.getUpdatedUrl(img.id, 'carousel');
+    if (updatedUrl) {
+      console.log(`🔄 Using updated URL for carousel ${img.id}: ${updatedUrl}`);
+      return { ...img, url: updatedUrl };
+    }
+    return img;
+  });
 };
 
 export const getGalleryImages = (): GalleryImage[] => {
-  // First try shared data (works across browsers)
-  const sharedData = sharedDataManager.getData();
-  if (sharedData?.gallery && sharedData.gallery.length > 0) {
-    return sharedData.gallery.map(img => ({
-      id: img.id,
-      url: img.url,
-      title: img.title || "",
-      description: img.description || "",
-      category: (img.category as "wedding" | "events" | "portraits" | "commercial" | "all") || "all"
-    }));
-  }
-  
-  // Fallback to localStorage  
+  // Start with localStorage or default data
   const stored = localStorage.getItem(STORAGE_KEYS.GALLERY);
-  return stored ? JSON.parse(stored) : defaultGalleryImages;
+  const baseImages = stored ? JSON.parse(stored) : defaultGalleryImages;
+  
+  // Apply cross-browser updates
+  return baseImages.map((img: GalleryImage) => {
+    const updatedUrl = crossBrowserSync.getUpdatedUrl(img.id, 'gallery');
+    if (updatedUrl) {
+      console.log(`🔄 Using updated URL for gallery ${img.id}: ${updatedUrl}`);
+      return { ...img, url: updatedUrl };
+    }
+    return img;
+  });
 };
 
 export const getServices = (): Service[] => {
@@ -243,37 +240,29 @@ export const getVideos = (): Video[] => {
   return stored ? JSON.parse(stored) : defaultVideos;
 };
 
-// Helper functions to save data to both localStorage and shared storage
-export const saveCarouselImages = async (images: CarouselImage[]) => {
+// Helper functions to save data with cross-browser sync
+export const saveCarouselImages = (images: CarouselImage[]) => {
   // Save to localStorage (for admin browser)
   localStorage.setItem(STORAGE_KEYS.CAROUSEL, JSON.stringify(images));
-  
-  // Save to shared storage (for all browsers)
-  const currentGallery = getGalleryImages();
-  await saveSharedImages(images, currentGallery);
   
   // Dispatch event to notify components of the change
   window.dispatchEvent(new CustomEvent('localStorage-update', {
     detail: { key: STORAGE_KEYS.CAROUSEL, value: images }
   }));
   
-  console.log('💾 Carousel images saved to shared storage - visible on all browsers');
+  console.log('💾 Carousel images saved to localStorage');
 };
 
-export const saveGalleryImages = async (images: GalleryImage[]) => {
+export const saveGalleryImages = (images: GalleryImage[]) => {
   // Save to localStorage (for admin browser)
   localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(images));
-  
-  // Save to shared storage (for all browsers)
-  const currentCarousel = getCarouselImages();
-  await saveSharedImages(currentCarousel, images);
   
   // Dispatch event to notify components of the change
   window.dispatchEvent(new CustomEvent('localStorage-update', {
     detail: { key: STORAGE_KEYS.GALLERY, value: images }
   }));
   
-  console.log('💾 Gallery images saved to shared storage - visible on all browsers');
+  console.log('💾 Gallery images saved to localStorage');
 };
 
 export const saveServices = (services: Service[]) => {
