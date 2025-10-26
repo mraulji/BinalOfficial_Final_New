@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Globe } from 'lucide-react';
 import { uploadToCloudinary, uploadUrlToCloudinary, CLOUDINARY_CONFIG, preloadImage, refreshImageCache } from '@/lib/cloudinaryService';
-import { globalConfigManager } from '@/lib/globalConfig';
+import { directSyncManager } from '@/lib/directSync';
 
 interface SimpleImageUploadProps {
   imageId: string;
@@ -44,9 +44,8 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       
       console.log(`✅ SimpleImageUpload: Cloudinary success for ${imageId}, URL: ${cloudinaryUrl}`);
       
-      // Add to global config for immediate cross-browser visibility
-      const type = imageId.includes('carousel') ? 'carousel' : 'gallery';
-      globalConfigManager.updateImageUrl(imageId, cloudinaryUrl, type);
+      // Add to direct sync for immediate cross-browser visibility
+      directSyncManager.updateImage(imageId, cloudinaryUrl);
       
       // Preload image to ensure it's ready for all browsers/devices
       try {
@@ -140,9 +139,8 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
                 
                 console.log(`✅ SimpleImageUpload: URL uploaded to Cloudinary for ${imageId}`);
                 
-                // Add to global config for immediate cross-browser visibility
-                const type = imageId.includes('carousel') ? 'carousel' : 'gallery';
-                globalConfigManager.updateImageUrl(imageId, cloudinaryUrl, type);
+                // Add to direct sync for immediate cross-browser visibility
+                directSyncManager.updateImage(imageId, cloudinaryUrl);
                 
                 // Preload image to ensure it's ready for all browsers/devices
                 try {

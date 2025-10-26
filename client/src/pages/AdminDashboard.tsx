@@ -18,7 +18,7 @@ import {
 import { SimpleImageUpload } from "@/components/SimpleImageUpload";
 import { EmailSetup } from "@/components/EmailSetup";
 import { updateGlobalCacheBuster } from "@/lib/cacheManager";
-import { globalConfigManager } from "@/lib/globalConfig";
+import { directSyncManager } from "@/lib/directSync";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -246,10 +246,8 @@ export default function AdminDashboard() {
                 onClick={() => {
                   updateGlobalCacheBuster();
                   
-                  // Generate sync URL with all image mappings in URL hash
-                  const currentBaseUrl = window.location.origin + window.location.pathname;
-                  // The globalConfigManager will automatically update the URL hash
-                  const syncUrl = `${currentBaseUrl}${window.location.hash}`;
+                  // Generate direct sync URL with image parameters
+                  const syncUrl = directSyncManager.getSyncUrl();
                   
                   navigator.clipboard?.writeText(syncUrl).then(() => {
                     toast({
@@ -259,7 +257,7 @@ export default function AdminDashboard() {
                   }).catch(() => {
                     toast({
                       title: "Images Refreshed!",
-                      description: "Global config updated for cross-browser sync.",
+                      description: "Direct sync updated for cross-browser access.",
                     });
                   });
                 }}

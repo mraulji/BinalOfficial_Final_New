@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { globalConfigManager } from "./globalConfig";
+import { directSyncManager } from "./directSync";
 
 // Import stock images
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -198,9 +198,9 @@ export const getCarouselImages = (): CarouselImage[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.CAROUSEL);
   const baseImages = stored ? JSON.parse(stored) : defaultCarouselImages;
   
-  // Apply global config updates to override default images
+  // Apply direct sync updates to override default images
   return baseImages.map((img: CarouselImage) => {
-    const updatedUrl = globalConfigManager.getImageUrl(img.id, 'carousel', img.url);
+    const updatedUrl = directSyncManager.getImageUrl(img.id, img.url);
     return { ...img, url: updatedUrl };
   });
 };
@@ -210,9 +210,9 @@ export const getGalleryImages = (): GalleryImage[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.GALLERY);
   const baseImages = stored ? JSON.parse(stored) : defaultGalleryImages;
   
-  // Apply global config updates to override default images
+  // Apply direct sync updates to override default images
   return baseImages.map((img: GalleryImage) => {
-    const updatedUrl = globalConfigManager.getImageUrl(img.id, 'gallery', img.url);
+    const updatedUrl = directSyncManager.getImageUrl(img.id, img.url);
     return { ...img, url: updatedUrl };
   });
 };
