@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeCacheManagement } from "./lib/cacheManager";
-import { initializeCrossBrowserSync } from "./lib/crossBrowserSync";
+import { initializeAutoUrlSync } from "./lib/autoUrlSync";
 import { useEffect } from "react";
 import Home from "@/pages/Home";
 import AdminLogin from "@/pages/AdminLogin";
@@ -24,11 +24,11 @@ function Router() {
 
 function App() {
   useEffect(() => {
-    // Initialize cross-browser sync and cache management
-    initializeCrossBrowserSync();
+    // Initialize auto URL sync and cache management
+    initializeAutoUrlSync();
     initializeCacheManagement();
     
-    console.log('🌐 App initialized with cross-browser sync');
+    console.log('🌐 App initialized with auto URL sync');
   }, []);
 
   return (

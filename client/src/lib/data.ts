@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { crossBrowserSync } from "./crossBrowserSync";
+import { autoUrlSync } from "./autoUrlSync";
 
 // Import stock images
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -192,20 +192,16 @@ export const ADMIN_CREDENTIALS = {
   password: "binal2024",
 };
 
-// Helper functions to get data with cross-browser updates
+// Helper functions to get data with auto URL sync
 export const getCarouselImages = (): CarouselImage[] => {
   // Start with localStorage or default data
   const stored = localStorage.getItem(STORAGE_KEYS.CAROUSEL);
   const baseImages = stored ? JSON.parse(stored) : defaultCarouselImages;
   
-  // Apply cross-browser updates
+  // Apply URL-based updates to override default images
   return baseImages.map((img: CarouselImage) => {
-    const updatedUrl = crossBrowserSync.getUpdatedUrl(img.id, 'carousel');
-    if (updatedUrl) {
-      console.log(`🔄 Using updated URL for carousel ${img.id}: ${updatedUrl}`);
-      return { ...img, url: updatedUrl };
-    }
-    return img;
+    const updatedUrl = autoUrlSync.getUpdatedUrl(img.id, 'carousel', img.url);
+    return { ...img, url: updatedUrl };
   });
 };
 
@@ -214,14 +210,10 @@ export const getGalleryImages = (): GalleryImage[] => {
   const stored = localStorage.getItem(STORAGE_KEYS.GALLERY);
   const baseImages = stored ? JSON.parse(stored) : defaultGalleryImages;
   
-  // Apply cross-browser updates
+  // Apply URL-based updates to override default images
   return baseImages.map((img: GalleryImage) => {
-    const updatedUrl = crossBrowserSync.getUpdatedUrl(img.id, 'gallery');
-    if (updatedUrl) {
-      console.log(`🔄 Using updated URL for gallery ${img.id}: ${updatedUrl}`);
-      return { ...img, url: updatedUrl };
-    }
-    return img;
+    const updatedUrl = autoUrlSync.getUpdatedUrl(img.id, 'gallery', img.url);
+    return { ...img, url: updatedUrl };
   });
 };
 
