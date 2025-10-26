@@ -94,7 +94,7 @@ const compressImage = (file: File, maxSize: number, quality: number = 0.8): Prom
   });
 };
 
-// Upload image to Cloudinary with automatic compression
+// Upload image to Cloudinary with automatic compression and cache-busting
 export const uploadToCloudinary = async (file: File, folder: string): Promise<string> => {
   // Validate configuration
   if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
@@ -108,6 +108,18 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
     fileToUpload = await compressImage(file, CLOUDINARY_CONFIG.MAX_FILE_SIZE, CLOUDINARY_CONFIG.COMPRESSION_QUALITY);
   }
 
+  // Create unique filename to prevent caching issues
+  const timestamp = Date.now();
+  const randomId = Math.random().toString(36).substring(2, 8);
+  const fileExtension = fileToUpload.name.split('.').pop() || 'jpg';
+  const uniqueFilename = `${timestamp}_${randomId}.${fileExtension}`;
+  
+  // Create a new file with unique name
+  const uniqueFile = new File([fileToUpload], uniqueFilename, {
+    type: fileToUpload.type,
+    lastModified: fileToUpload.lastModified,
+  });
+
   // Try multiple presets in order of preference
   const presetsToTry = [
     CLOUDINARY_CONFIG.UPLOAD_PRESET, // Custom preset
@@ -120,7 +132,7 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
     
     try {
       const formData = new FormData();
-      formData.append('file', fileToUpload); // Use compressed file
+      formData.append('file', uniqueFile); // Use unique filename for cache-busting
       
       if (preset) {
         formData.append('upload_preset', preset);
@@ -129,6 +141,9 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
       if (folder) {
         formData.append('folder', folder);
       }
+      
+      // Add transformation parameters for additional cache-busting
+      formData.append('public_id', `${folder.replace('/', '_')}_${timestamp}_${randomId}`);
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
@@ -141,7 +156,12 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
       if (response.ok) {
         const data = await response.json();
         console.log(`✅ Upload successful with preset: ${preset || 'none'}`);
-        return data.secure_url;
+        
+        // Add cache-busting parameter to the URL for immediate refresh
+        const cacheBustedUrl = `${data.secure_url}?v=${timestamp}`;
+        console.log(`🔄 Cache-busted URL: ${cacheBustedUrl}`);
+        
+        return cacheBustedUrl;
       } else {
         const errorText = await response.text();
         console.warn(`❌ Upload failed with preset '${preset}': ${response.status} - ${errorText}`);
@@ -164,12 +184,16 @@ export const uploadToCloudinary = async (file: File, folder: string): Promise<st
   throw new Error('All upload attempts failed');
 };
 
-// Upload image from URL (for existing functionality)
+// Upload image from URL with cache-busting
 export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): Promise<string> => {
   // Validate configuration
   if (!CLOUDINARY_CONFIG.CLOUD_NAME || CLOUDINARY_CONFIG.CLOUD_NAME === 'demo') {
     throw new Error('Cloudinary Cloud Name not configured. Please set VITE_CLOUDINARY_CLOUD_NAME environment variable.');
   }
+
+  // Create unique identifiers for cache-busting
+  const timestamp = Date.now();
+  const randomId = Math.random().toString(36).substring(2, 8);
 
   // Try multiple presets in order of preference
   const presetsToTry = [
@@ -192,6 +216,9 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
       if (folder) {
         formData.append('folder', folder);
       }
+      
+      // Add unique public_id for cache-busting
+      formData.append('public_id', `${folder.replace('/', '_')}_url_${timestamp}_${randomId}`);
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.CLOUD_NAME}/image/upload`,
@@ -204,7 +231,12 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
       if (response.ok) {
         const data = await response.json();
         console.log(`✅ URL upload successful with preset: ${preset || 'none'}`);
-        return data.secure_url;
+        
+        // Add cache-busting parameter to the URL
+        const cacheBustedUrl = `${data.secure_url}?v=${timestamp}`;
+        console.log(`🔄 Cache-busted URL: ${cacheBustedUrl}`);
+        
+        return cacheBustedUrl;
       } else {
         const errorText = await response.text();
         console.warn(`❌ URL upload failed with preset '${preset}': ${response.status} - ${errorText}`);
@@ -223,6 +255,36 @@ export const uploadUrlToCloudinary = async (imageUrl: string, folder: string): P
   }
 
   throw new Error('All URL upload attempts failed');
+};
+
+// Force refresh image in all browsers by updating the cache-buster parameter
+export const refreshImageCache = (url: string): string => {
+  const timestamp = Date.now();
+  
+  // Remove existing cache-buster parameter if present
+  const baseUrl = url.split('?')[0];
+  
+  // Add new cache-buster parameter
+  const refreshedUrl = `${baseUrl}?v=${timestamp}`;
+  
+  console.log(`🔄 Refreshing image cache: ${refreshedUrl}`);
+  return refreshedUrl;
+};
+
+// Preload image to ensure it's cached for other browsers/devices
+export const preloadImage = (url: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      console.log(`📱 Image preloaded for all devices: ${url}`);
+      resolve();
+    };
+    img.onerror = () => {
+      console.warn(`❌ Failed to preload image: ${url}`);
+      reject(new Error('Failed to preload image'));
+    };
+    img.src = url;
+  });
 };
 
 // Setup instructions

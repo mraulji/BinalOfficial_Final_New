@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Globe } from 'lucide-react';
-import { uploadToCloudinary, uploadUrlToCloudinary, CLOUDINARY_CONFIG } from '@/lib/cloudinaryService';
+import { uploadToCloudinary, uploadUrlToCloudinary, CLOUDINARY_CONFIG, preloadImage, refreshImageCache } from '@/lib/cloudinaryService';
 
 interface SimpleImageUploadProps {
   imageId: string;
@@ -42,14 +42,22 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       const cloudinaryUrl = await uploadToCloudinary(file, folder);
       
       console.log(`✅ SimpleImageUpload: Cloudinary success for ${imageId}, URL: ${cloudinaryUrl}`);
+      
+      // Preload image to ensure it's ready for all browsers/devices
+      try {
+        await preloadImage(cloudinaryUrl);
+      } catch (error) {
+        console.warn('Image preload failed, but upload was successful');
+      }
+      
       onUpdate(imageId, cloudinaryUrl);
       setUrlInput(cloudinaryUrl);
       
       toast({
         title: "Image uploaded successfully!",
         description: file.size > maxSizeBytes 
-          ? "Large image was compressed and uploaded to the cloud."
-          : "Your image is now stored in the cloud.",
+          ? "Large image was compressed and uploaded. Visible on all devices!"
+          : "Your image is now stored in the cloud and visible everywhere!",
       });
     } catch (error) {
       console.error(`❌ Cloudinary upload error for ${imageId}:`, error);
@@ -126,12 +134,20 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
                 const cloudinaryUrl = await uploadUrlToCloudinary(urlInput, folder);
                 
                 console.log(`✅ SimpleImageUpload: URL uploaded to Cloudinary for ${imageId}`);
+                
+                // Preload image to ensure it's ready for all browsers/devices
+                try {
+                  await preloadImage(cloudinaryUrl);
+                } catch (error) {
+                  console.warn('Image preload failed, but upload was successful');
+                }
+                
                 onUpdate(imageId, cloudinaryUrl);
                 setUrlInput(cloudinaryUrl);
                 
                 toast({
                   title: "Image uploaded successfully!",
-                  description: "External URL has been uploaded to our cloud storage.",
+                  description: "External URL has been uploaded and is now visible everywhere!",
                 });
               } catch (error) {
                 console.error(`❌ URL upload error for ${imageId}:`, error);
