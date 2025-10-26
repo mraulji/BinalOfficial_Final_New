@@ -33,10 +33,11 @@ class GlobalConfigManager {
     const configUrl = type === 'carousel' ? this.config.carousel[id] : this.config.gallery[id];
     
     if (configUrl && configUrl !== defaultUrl) {
-      console.log(`🔄 Using global config URL for ${type}[${id}]: ${configUrl}`);
+      console.log(`🔄 ✅ OVERRIDE: Using global config URL for ${type}[${id}]: ${defaultUrl} → ${configUrl}`);
       return configUrl;
     }
     
+    console.log(`📝 NO OVERRIDE: ${type}[${id}] using default: ${defaultUrl}`);
     return defaultUrl;
   }
 
@@ -63,17 +64,24 @@ class GlobalConfigManager {
   // Load config from URL, localStorage, or other sources
   loadConfig() {
     let loaded = false;
+    let source = '';
 
-    // Try URL hash first
+    console.log(`🔍 Loading config - URL hash: ${window.location.hash}`);
+
+    // Try URL hash first (highest priority for cross-browser sharing)
     if (window.location.hash.startsWith('#config=')) {
       try {
         const compressed = window.location.hash.substring(8);
+        console.log(`🔓 Decoding hash: ${compressed.substring(0, 50)}...`);
         const decoded = atob(compressed);
         this.config = JSON.parse(decoded);
         loaded = true;
-        console.log(`📥 Loaded config from URL hash: ${Object.keys(this.config.carousel).length + Object.keys(this.config.gallery).length} images`);
+        source = 'URL hash';
+        console.log(`📥 SUCCESS: Loaded config from URL hash: ${Object.keys(this.config.carousel).length + Object.keys(this.config.gallery).length} images`);
+        console.log(`📋 Config details:`, this.config);
       } catch (error) {
-        console.warn('Failed to load config from URL hash:', error);
+        console.error('❌ Failed to load config from URL hash:', error);
+        console.log('📝 Raw hash:', window.location.hash);
       }
     }
 
@@ -83,11 +91,19 @@ class GlobalConfigManager {
         const stored = localStorage.getItem('global_image_config');
         if (stored) {
           this.config = JSON.parse(stored);
+          loaded = true;
+          source = 'localStorage';
           console.log(`📥 Loaded config from localStorage: ${Object.keys(this.config.carousel).length + Object.keys(this.config.gallery).length} images`);
         }
       } catch (error) {
         console.warn('Failed to load config from localStorage:', error);
       }
+    }
+
+    if (loaded) {
+      console.log(`✅ Global config loaded from ${source} - will apply to images`);
+    } else {
+      console.log(`❌ No global config found in URL hash or localStorage`);
     }
   }
 
@@ -140,6 +156,8 @@ export const globalConfigManager = new GlobalConfigManager();
 
 // Initialize global config management
 export const initializeGlobalConfig = () => {
+  console.log('🚀 Initializing global config manager...');
+  
   // Load existing config
   globalConfigManager.loadConfig();
 
@@ -150,12 +168,24 @@ export const initializeGlobalConfig = () => {
     globalConfigManager.forceRefreshAllImages();
   });
 
-  // Force refresh images after a short delay to ensure DOM is ready
+  // Force refresh images after DOM is ready
   setTimeout(() => {
-    if (globalConfigManager.hasMappings()) {
+    const hasMappings = globalConfigManager.hasMappings();
+    console.log(`🔍 DOM ready - has mappings: ${hasMappings}`);
+    if (hasMappings) {
+      console.log('🔄 Force refreshing all images...');
       globalConfigManager.forceRefreshAllImages();
     }
   }, 1000);
 
-  console.log('🌐 Global config manager initialized');
+  // Add debugging helper to window for testing
+  (window as any).testGlobalConfig = () => {
+    console.log('🔧 Global config debug info:');
+    console.log('Config:', globalConfigManager.getAllMappings());
+    console.log('URL hash:', window.location.hash);
+    console.log('Has mappings:', globalConfigManager.hasMappings());
+  };
+
+  console.log('✅ Global config manager initialized');
+  console.log('💡 TIP: Run testGlobalConfig() in console to debug');
 };
