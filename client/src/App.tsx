@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initializeCacheManagement } from "./lib/cacheManager";
 import { initializeDirectSync } from "./lib/directSync";
+import "./lib/testSync";
 import { useEffect } from "react";
 import Home from "@/pages/Home";
 import AdminLogin from "@/pages/AdminLogin";
