@@ -632,7 +632,7 @@ export default function AdminDashboard() {
                         <p className="font-semibold text-sm">{service.name}</p>
                         <p className="text-xs text-muted-foreground">{service.description}</p>
                         <p className="text-sm font-bold text-primary">
-                          ₹{service.basePrice.toLocaleString()} <span className="text-xs">/{service.unit}</span>
+                          ₹{(service.basePrice || 0).toLocaleString()} <span className="text-xs">/{service.unit || 'unit'}</span>
                         </p>
                       </div>
                     </div>
@@ -810,7 +810,7 @@ export default function AdminDashboard() {
                             <p className="font-semibold">{service.name}</p>
                             <p className="text-muted-foreground">{service.description}</p>
                             <p className="text-lg font-bold text-primary mt-2">
-                              ₹{service.basePrice.toLocaleString()} <span className="text-sm font-normal">/{service.unit}</span>
+                              ₹{(service.basePrice || 0).toLocaleString()} <span className="text-sm font-normal">/{service.unit || 'unit'}</span>
                             </p>
                           </div>
                         </div>
@@ -889,12 +889,15 @@ export default function AdminDashboard() {
                       <div>
                         <h4 className="font-medium mb-2">Services & Total</h4>
                         <div className="space-y-1 text-sm">
-                          {entry.services.map((service, idx) => (
+                          {Array.isArray(entry.services) ? entry.services.map((service, idx) => (
                             <p key={idx}>
-                              {service.serviceName} x{service.quantity} - ₹{service.totalPrice.toLocaleString()}
+                              {typeof service === 'string' ? service : 
+                               `${service.serviceName || 'Service'} x${service.quantity || 1} - ₹${(service.totalPrice || 0).toLocaleString()}`}
                             </p>
-                          ))}
-                          <p className="font-bold text-lg mt-2">Total: ₹{entry.totalAmount.toLocaleString()}</p>
+                          )) : (
+                            <p>No services selected</p>
+                          )}
+                          <p className="font-bold text-lg mt-2">Total: ₹{(entry.totalAmount || 0).toLocaleString()}</p>
                         </div>
                         
                         {entry.additionalNotes && (
