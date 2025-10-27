@@ -1,5 +1,5 @@
 import { Camera, Award, Users, Heart } from "lucide-react";
-import ownerPhoto from "@assets/stock_images/professional_photogr_11293deb.jpg";
+import ownerPhoto from "@assets/stock_images/Gopal.jpg";
 
 export function Introduction() {
   const stats = [
@@ -19,7 +19,7 @@ export function Introduction() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-chart-3/20 rounded-lg transform rotate-3" />
               <img
                 src={ownerPhoto}
-                alt="Rajesh Binal - Founder & Lead Photographer"
+                alt="Gopalbhai Gohel - Founder & Lead Photographer"
                 className="relative rounded-lg shadow-xl w-full object-cover aspect-[4/5]"
               />
               <div className="absolute -bottom-6 -right-6 bg-primary text-primary-foreground p-6 rounded-lg shadow-lg">
@@ -38,7 +38,7 @@ export function Introduction() {
               Capturing Memories That Last Forever
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              Founded in 2009 by Rajesh Binal, Binal Studio Photography has been at the forefront
+              Founded in 2009 by Gopalbhai Gohel, Binal Studio Photography has been at the forefront
               of creating timeless visual stories. Our passion for photography combined with
               cutting-edge technology ensures that every moment is captured beautifully.
             </p>

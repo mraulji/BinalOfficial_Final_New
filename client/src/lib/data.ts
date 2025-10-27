@@ -8,10 +8,10 @@ import carousel3 from "@assets/stock_images/elegant_wedding_phot_e91b357a.jpg";
 import carousel4 from "@assets/stock_images/elegant_wedding_phot_3de44adb.jpg";
 import carousel5 from "@assets/stock_images/elegant_wedding_phot_3f411a48.jpg";
 
-import portrait1 from "@assets/stock_images/professional_portrai_1d85d32c.jpg";
-import portrait2 from "@assets/stock_images/professional_portrai_3fa2857e.jpg";
-import portrait3 from "@assets/stock_images/professional_portrai_ccaa3530.jpg";
-import portrait4 from "@assets/stock_images/professional_portrai_0548cfb5.jpg";
+import portrait1 from "@assets/stock_images/MAYUR.jpg";
+import portrait2 from "@assets/stock_images/vISHAL.jpg";
+import portrait3 from "@assets/stock_images/abC.jpg";
+import portrait4 from "@assets/stock_images/XYZ.jpg";
 
 import event1 from "@assets/stock_images/corporate_event_phot_dde28f36.jpg";
 import event2 from "@assets/stock_images/corporate_event_phot_6ff478b6.jpg";
@@ -125,30 +125,30 @@ export const defaultServices: Service[] = [
 export const defaultTeamMembers: TeamMember[] = [
   {
     id: "t1",
-    name: "Rajesh Binal",
-    role: "Founder & Lead Photographer",
-    photo: ownerPhoto,
-    bio: "With over 15 years of experience, Rajesh brings artistic vision and technical excellence to every shoot.",
+    name: "Mayursinh Raulji",
+    role: "Marketing and Developer",
+    photo: portrait1,
+    bio: "With over 6+ years of experience, Mayursinh brings artistic vision and technical excellence to every Website.",
   },
   {
     id: "t2",
-    name: "Priya Sharma",
+    name: "Vishal Gohel",
     role: "Senior Photographer",
-    photo: portrait1,
+    photo: portrait2,
     bio: "Specializing in wedding and portrait photography with a keen eye for candid moments.",
   },
   {
     id: "t3",
-    name: "Amit Kumar",
+    name: "Maheshbhai Thakor",
     role: "Videographer & Editor",
-    photo: portrait2,
+    photo: portrait3,
     bio: "Expert in cinematic storytelling and post-production magic.",
   },
   {
     id: "t4",
-    name: "Neha Patel",
+    name: "Dhirubhai Thakor",
     role: "Drone Specialist",
-    photo: portrait3,
+    photo: portrait4,
     bio: "Certified drone pilot creating breathtaking aerial perspectives.",
   },
 ];

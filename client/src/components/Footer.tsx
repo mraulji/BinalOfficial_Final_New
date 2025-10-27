@@ -35,7 +35,7 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/share/1AKQiCwXpV/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-muted hover-elevate active-elevate-2 rounded-md text-muted-foreground hover:text-primary transition-colors"
@@ -44,7 +44,7 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/binal__photography?igsh=MTJrMTdndWR2MWFvYQ%3D%3D&utm_source=qr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-muted hover-elevate active-elevate-2 rounded-md text-muted-foreground hover:text-primary transition-colors"
@@ -53,7 +53,7 @@ export function Footer() {
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com/c/BINALOFFICIAL"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-muted hover-elevate active-elevate-2 rounded-md text-muted-foreground hover:text-primary transition-colors"
@@ -61,15 +61,7 @@ export function Footer() {
               >
                 <Youtube className="h-5 w-5" />
               </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-muted hover-elevate active-elevate-2 rounded-md text-muted-foreground hover:text-primary transition-colors"
-                data-testid="link-twitter"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
+             
             </div>
           </div>
 
@@ -110,20 +102,19 @@ export function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>123, Photography Lane, Indiranagar, Bangalore - 560038</span>
+                <span>Nani Kaloli, Kaloli, Ta.Kheda, Dis.Kheda, Gujarat, India - 387550</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <Phone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <div>+91 98765 43210</div>
-                  <div>+91 87654 32109</div>
+                  <div>+91 76982 86446</div>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <div>info@binalstudio.com</div>
-                  <div>bookings@binalstudio.com</div>
+                  <div>binalthakor9898@gmail.com</div>
+                  <div>gopalthakor495@gmail.com</div>
                 </div>
               </li>
             </ul>
@@ -136,7 +127,7 @@ export function Footer() {
             © {new Date().getFullYear()} Binal Studio Photography. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground font-mono">
-             <span className="text-primary">Mayursinh</span> / <span className="text-primary">Raulji</span>
+            Developed By <span className="text-primary">Mayursinh</span>  <span className="text-primary">Raulji</span>
           </p>
         </div>
       </div>

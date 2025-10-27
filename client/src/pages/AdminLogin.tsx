@@ -90,7 +90,7 @@ export default function AdminLogin() {
 
           <div className="mt-8 p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground text-center mb-2 font-semibold">
-              Test Credentials:
+                Admin side login
             </p>
            
           </div>

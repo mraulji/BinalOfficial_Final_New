@@ -425,9 +425,7 @@ export const getBudgetPlannerEntries = async (): Promise<BudgetPlannerEntry[]> =
   } catch (error) {
     console.error('❌ Error loading budget entries from Supabase:', error);
     console.log('📝 Falling back to default entry');
-    try {
-      return [getDefaultBudgetEntry()];
-    }
+    return [getDefaultBudgetEntry()];
   }
 };
 

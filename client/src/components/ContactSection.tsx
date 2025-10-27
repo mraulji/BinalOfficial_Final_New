@@ -167,8 +167,8 @@ export function ContactSection() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                    <p className="text-muted-foreground">info@binalstudio.com</p>
-                    <p className="text-muted-foreground">bookings@binalstudio.com</p>
+                    <p className="text-muted-foreground">binalthakor9898@gmail.com</p>
+                    <p className="text-muted-foreground">gopalthakor495@gmail.com</p>
                   </div>
                 </CardContent>
               </Card>
@@ -180,8 +180,8 @@ export function ContactSection() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Phone</h3>
-                    <p className="text-muted-foreground">+91 98765 43210</p>
-                    <p className="text-muted-foreground">+91 87654 32109</p>
+                    <p className="text-muted-foreground">+91 7698286446</p>
+                   
                   </div>
                 </CardContent>
               </Card>
@@ -194,11 +194,11 @@ export function ContactSection() {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Studio Address</h3>
                     <p className="text-muted-foreground">
-                      123, Photography Lane
+                      Nani Kaloli,Kaloli
                       <br />
-                      Indiranagar, Bangalore - 560038
+                      Ta.Kheda,Dis.Kheda
                       <br />
-                      Karnataka, India
+                      Gujarat, India-387550
                     </p>
                   </div>
                 </CardContent>
@@ -208,14 +208,14 @@ export function ContactSection() {
             {/* Google Map */}
             <div className="aspect-video rounded-lg overflow-hidden border border-border">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.8674743659876!2d77.64059831482183!3d12.971598990862868!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1234567890123!5m2!1sen!2sin"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d58515.35002647932!2d72.6430796!3d22.680712699999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e4e4c8e6c9b49%3A0x8b8b8b8b8b8b8b8b!2sNani%20Kaloli%2C%20Gujarat%20387550!5e0!3m2!1sen!2sin!4v1698417600000!5m2!1sen!2sin"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Binal Studio Location"
+                title="Binal Studio Location - Nani Kaloli, Gujarat"
                 data-testid="map-location"
               />
             </div>
