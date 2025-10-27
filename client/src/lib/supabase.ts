@@ -48,6 +48,15 @@ export interface BudgetEntry {
   updated_at?: string
 }
 
+export interface VideoItem {
+  id: string
+  youtube_id: string
+  title: string
+  thumbnail?: string
+  created_at?: string
+  updated_at?: string
+}
+
 // Carousel Operations
 export const carouselAPI = {
   // Get all carousel items
@@ -262,6 +271,68 @@ export const budgetAPI = {
   }
 }
 
+// Video Operations
+export const videoAPI = {
+  // Get all videos
+  async getAll(): Promise<VideoItem[]> {
+    console.log('🔄 Fetching videos from Supabase...')
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .order('created_at', { ascending: true })
+    
+    if (error) {
+      console.error('❌ Error fetching videos:', error)
+      throw error
+    }
+    
+    console.log('✅ Videos loaded:', data?.length || 0)
+    return data || []
+  },
+
+  // Create or update video
+  async upsertVideo(video: { id: string; youtube_id: string; title: string; thumbnail?: string }): Promise<VideoItem> {
+    console.log(`🔄 Upserting video ${video.id}...`)
+    const { data, error } = await supabase
+      .from('videos')
+      .upsert({
+        id: video.id,
+        youtube_id: video.youtube_id,
+        title: video.title,
+        thumbnail: video.thumbnail || null,
+        updated_at: new Date().toISOString()
+      }, { 
+        onConflict: 'id' 
+      })
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('❌ Error upserting video:', error)
+      throw error
+    }
+    
+    console.log('✅ Video upserted:', data)
+    return data
+  },
+
+  // Delete video
+  async deleteVideo(id: string): Promise<void> {
+    console.log(`🔄 Deleting video ${id}...`)
+    const { error } = await supabase
+      .from('videos')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('❌ Error deleting video:', error)
+      throw error
+    }
+    
+    console.log('✅ Video deleted:', id)
+  }
+}
+
 // Real-time subscriptions for live updates
 export const subscribeToChanges = {
   // Subscribe to carousel changes
@@ -283,6 +354,18 @@ export const subscribeToChanges = {
       .channel('gallery_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'gallery_items' }, 
+        callback
+      )
+      .subscribe()
+  },
+
+  // Subscribe to video changes
+  videos: (callback: (payload: any) => void) => {
+    console.log('🔄 Subscribing to video changes...')
+    return supabase
+      .channel('video_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'videos' }, 
         callback
       )
       .subscribe()

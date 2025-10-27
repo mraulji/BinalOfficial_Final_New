@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Play } from "lucide-react";
-import { getVideos, STORAGE_KEYS } from "@/lib/data";
+import { getVideos } from "@/lib/supabaseData";
 import type { Video } from "@shared/schema";
 
 // VideoThumbnail component with multiple fallback methods
@@ -67,14 +67,17 @@ export function VideoSection() {
 
   useEffect(() => {
     // Load initial videos
-    const initialVideos = getVideos();
-    setVideos(initialVideos);
-    console.log('🎬 VideoSection: Loaded initial videos:', initialVideos);
-    console.log('🎬 VideoSection: Videos count:', initialVideos.length);
+    const loadVideos = async () => {
+      const initialVideos = await getVideos();
+      setVideos(initialVideos);
+      console.log('🎬 VideoSection: Loaded initial videos:', initialVideos);
+      console.log('🎬 VideoSection: Videos count:', initialVideos.length);
+    };
+    loadVideos();
 
     // Listen for localStorage changes
     const handleStorageChange = (e: CustomEvent) => {
-      if (e.detail.key === STORAGE_KEYS.VIDEOS) {
+      if (e.detail.key === 'binal_videos') {
         console.log('🎬 VideoSection: Received storage change event:', e.detail.value);
         setVideos(e.detail.value);
       }

@@ -34,7 +34,9 @@ import {
   updateGalleryImage,
   saveGalleryImage,
   saveCarouselImage,
-  saveBudgetEntry
+  saveBudgetEntry,
+  getVideos as getVideosFromSupabase,
+  saveVideo
 } from "@/lib/supabaseData";
 import { getServices, getVideos, STORAGE_KEYS, saveServices, saveVideos, saveBudgetPlannerEntries } from "@/lib/data";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
@@ -73,9 +75,9 @@ export default function AdminDashboard() {
         setGalleryImages(gallery);
         setBudgetEntries(budgetData);
         
-        // Load services and videos (these are still sync)
+        // Load services and videos
         setServices(getServices());
-        const loadedVideos = getVideos();
+        const loadedVideos = await getVideosFromSupabase();
         setVideos(loadedVideos);
         
         console.log('AdminDashboard: Loaded all data successfully');
@@ -320,7 +322,7 @@ export default function AdminDashboard() {
     toast({ title: "Services saved successfully!" });
   };
 
-  const handleSaveVideos = () => {
+  const handleSaveVideos = async () => {
     console.log('🎬 Saving videos:', videos);
     console.log('🎬 Videos count:', videos.length);
     videos.forEach((video, index) => {
@@ -331,8 +333,18 @@ export default function AdminDashboard() {
         hasYoutubeId: !!video.youtubeId
       });
     });
-    saveVideos(videos);
-    toast({ title: "Videos saved successfully!" });
+    
+    try {
+      // Save all videos to Supabase database
+      for (const video of videos) {
+        await saveVideo(video);
+      }
+      console.log('✅ All videos saved to database');
+      toast({ title: "Videos saved to database successfully!" });
+    } catch (error) {
+      console.error('Error saving videos:', error);
+      toast({ title: "Error saving videos", description: "Please try again", variant: "destructive" });
+    }
   };
 
   const handleSaveBudgetEntries = () => {

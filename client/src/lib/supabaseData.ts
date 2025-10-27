@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { carouselAPI, galleryAPI, budgetAPI, subscribeToChanges, type CarouselItem } from "./supabase";
+import { carouselAPI, galleryAPI, budgetAPI, videoAPI, subscribeToChanges, type CarouselItem } from "./supabase";
 
 // Import stock images for fallback
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -605,6 +605,140 @@ export const videos: Video[] = [
     description: "Professional event videography for corporate functions",
   },
 ];
+
+// Video Management Functions
+export async function getVideos(): Promise<Video[]> {
+  console.log('🎬 Getting videos...');
+  
+  // Try localStorage first for immediate response
+  const localVideos = localStorage.getItem('binal_videos');
+  if (localVideos) {
+    const parsedVideos = JSON.parse(localVideos);
+    console.log('🎬 Found videos in localStorage:', parsedVideos.length);
+    
+    // Still fetch from database in background for sync
+    videoAPI.getAll().then(dbVideos => {
+      if (dbVideos.length > 0) {
+        const convertedVideos = dbVideos.map(item => ({
+          id: item.id,
+          youtubeId: item.youtube_id,
+          title: item.title,
+          thumbnail: item.thumbnail || ''
+        }));
+        
+        // Update localStorage if different
+        const currentLocal = JSON.stringify(parsedVideos);
+        const newLocal = JSON.stringify(convertedVideos);
+        if (currentLocal !== newLocal) {
+          console.log('🔄 Syncing videos from database to localStorage');
+          localStorage.setItem('binal_videos', newLocal);
+        }
+      }
+    }).catch(error => {
+      console.warn('⚠️ Could not sync videos from database:', error);
+    });
+    
+    return parsedVideos;
+  }
+  
+  // Fallback to database
+  try {
+    const dbVideos = await videoAPI.getAll();
+    const convertedVideos = dbVideos.map(item => ({
+      id: item.id,
+      youtubeId: item.youtube_id,
+      title: item.title,
+      thumbnail: item.thumbnail || ''
+    }));
+    
+    // Save to localStorage for faster future access
+    localStorage.setItem('binal_videos', JSON.stringify(convertedVideos));
+    console.log('✅ Loaded videos from database:', convertedVideos.length);
+    return convertedVideos;
+  } catch (error) {
+    console.error('❌ Error loading videos from database:', error);
+    
+    // Final fallback to default videos
+    const defaultVideos: Video[] = [
+      {
+        id: "video-1",
+        youtubeId: "9No-FiEInLA",
+        title: "Wedding Photography Showcase",
+        thumbnail: ""
+      },
+      {
+        id: "video-2", 
+        youtubeId: "ZmD3F_rdj8s",
+        title: "Portrait Session Highlights",
+        thumbnail: ""
+      },
+      {
+        id: "video-3",
+        youtubeId: "Mfz3kFNVopk", 
+        title: "Event Photography Reel",
+        thumbnail: ""
+      }
+    ];
+    
+    localStorage.setItem('binal_videos', JSON.stringify(defaultVideos));
+    return defaultVideos;
+  }
+}
+
+export async function saveVideo(video: Video): Promise<void> {
+  console.log('🎬 Saving video:', video);
+  
+  try {
+    // Convert to database format
+    const dbVideo = {
+      id: video.id,
+      youtube_id: video.youtubeId,
+      title: video.title,
+      thumbnail: video.thumbnail || undefined
+    };
+    
+    // Save to database
+    await videoAPI.upsertVideo(dbVideo);
+    console.log('✅ Video saved to database:', video.id);
+    
+    // Update localStorage
+    const currentVideos = await getVideos();
+    const updatedVideos = currentVideos.map(v => 
+      v.id === video.id ? video : v
+    );
+    
+    // If video doesn't exist, add it
+    if (!currentVideos.find(v => v.id === video.id)) {
+      updatedVideos.push(video);
+    }
+    
+    localStorage.setItem('binal_videos', JSON.stringify(updatedVideos));
+    
+    // Dispatch event for real-time updates
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_videos', value: updatedVideos }
+    }));
+    
+  } catch (error) {
+    console.error('❌ Error saving video to database:', error);
+    // Fallback to localStorage only
+    const currentVideos = JSON.parse(localStorage.getItem('binal_videos') || '[]');
+    const updatedVideos = currentVideos.map((v: Video) => 
+      v.id === video.id ? video : v
+    );
+    
+    if (!currentVideos.find((v: Video) => v.id === video.id)) {
+      updatedVideos.push(video);
+    }
+    
+    localStorage.setItem('binal_videos', JSON.stringify(updatedVideos));
+    
+    // Dispatch event anyway
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_videos', value: updatedVideos }
+    }));
+  }
+}
 
 // Initialize real-time updates on app start
 if (typeof window !== 'undefined') {
