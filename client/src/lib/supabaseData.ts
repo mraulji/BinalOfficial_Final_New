@@ -158,13 +158,31 @@ export const getCarouselImages = async (): Promise<CarouselImage[]> => {
     console.log('🔄 Fetching carousel from Supabase...');
     const supabaseData = await carouselAPI.getAll();
     
-    // Convert Supabase data to CarouselImage format
-    const carouselImages: CarouselImage[] = supabaseData.map(item => ({
-      id: item.id,
-      url: item.url,
-      title: item.title,
-      subtitle: item.subtitle
-    }));
+    // Convert Supabase data to CarouselImage format with URL parsing
+    const carouselImages: CarouselImage[] = supabaseData.map(item => {
+      let cleanUrl = item.url;
+      
+      // Handle cases where URL might be stored as JSON object
+      if (typeof item.url === 'string') {
+        try {
+          const parsed = JSON.parse(item.url);
+          if (parsed && typeof parsed === 'object' && parsed.url) {
+            cleanUrl = parsed.url;
+            console.log(`🔧 Extracted URL from JSON for carousel item ${item.id}`);
+          }
+        } catch {
+          // Not JSON, use as-is
+          cleanUrl = item.url;
+        }
+      }
+      
+      return {
+        id: item.id,
+        url: cleanUrl,
+        title: item.title || '',
+        subtitle: item.subtitle || ''
+      };
+    });
 
     console.log(`✅ Loaded ${carouselImages.length} carousel images from database`);
     return carouselImages;
@@ -200,6 +218,51 @@ export const updateCarouselImage = async (id: string, updates: Partial<CarouselI
   }
 };
 
+// Save complete carousel image (create or update)
+export const saveCarouselImage = async (image: CarouselImage): Promise<void> => {
+  if (!isSupabaseConfigured()) {
+    console.log('⚠️ Supabase not configured, cannot save carousel image');
+    return;
+  }
+
+  try {
+    console.log(`🔄 Saving complete carousel image ${image.id}...`);
+    
+    // Convert CarouselImage to CarouselItem for database
+    // Ensure URL is a string, not an object
+    const cleanUrl = typeof image.url === 'string' ? image.url : String(image.url);
+    
+    const carouselItem = {
+      id: image.id,
+      url: cleanUrl,
+      title: image.title || '',
+      subtitle: image.subtitle || '',
+      position: 0 // Default position, you might want to calculate this
+    };
+    
+    try {
+      // Try to update first
+      await carouselAPI.updateCarouselItem(image.id, carouselItem);
+    } catch (updateError) {
+      // If update fails, try to create new item
+      console.log(`📝 Item ${image.id} doesn't exist, creating new...`);
+      await carouselAPI.createItem(carouselItem);
+    }
+    
+    console.log('✅ Complete carousel image saved successfully');
+    
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'binal_carousel_images',
+      newValue: JSON.stringify(await getCarouselImages())
+    }));
+    
+  } catch (error) {
+    console.error('❌ Error saving carousel image:', error);
+    throw error;
+  }
+};
+
 // 🖼️ GALLERY DATA FUNCTIONS
 export const getGalleryImages = async (): Promise<GalleryImage[]> => {
   if (!isSupabaseConfigured()) {
@@ -229,8 +292,8 @@ export const getGalleryImages = async (): Promise<GalleryImage[]> => {
         url: cleanUrl,
         title: item.title || 'Gallery Image',
         category: (item.category as any) || 'wedding', // Default category
-        primaryCategory: (item.primary_category as any) || 'wedding',
-        secondaryCategory: item.secondary_category as any,
+        primaryCategory: (item.category as any) || 'wedding', // Use category as primaryCategory
+        secondaryCategory: undefined,
         description: item.description || undefined
       };
     });

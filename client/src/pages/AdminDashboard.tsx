@@ -33,6 +33,7 @@ import {
   updateCarouselImage,
   updateGalleryImage,
   saveGalleryImage,
+  saveCarouselImage,
   saveBudgetEntry
 } from "@/lib/supabaseData";
 import { getServices, getVideos, STORAGE_KEYS, saveServices, saveVideos, saveBudgetPlannerEntries } from "@/lib/data";
@@ -227,13 +228,9 @@ export default function AdminDashboard() {
   // Save functions
   const handleSaveCarousel = async () => {
     try {
-      // Save all carousel images to Supabase database
+      // Save all carousel images to Supabase database (create or update)
       for (const image of carouselImages) {
-        await updateCarouselImage(image.id, {
-          url: image.url,
-          title: image.title,
-          subtitle: image.subtitle
-        });
+        await saveCarouselImage(image);
       }
       console.log('✅ All carousel images saved to database');
       toast({ title: "Carousel images saved to database!" });
