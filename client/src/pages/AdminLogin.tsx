@@ -92,10 +92,7 @@ export default function AdminLogin() {
             <p className="text-sm text-muted-foreground text-center mb-2 font-semibold">
               Test Credentials:
             </p>
-            <p className="text-sm text-center font-mono">
-              <span className="text-primary font-semibold">admin</span> /{" "}
-              <span className="text-primary font-semibold">binal2024</span>
-            </p>
+           
           </div>
         </CardContent>
       </Card>

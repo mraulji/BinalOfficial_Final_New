@@ -380,14 +380,25 @@ export const saveGalleryImage = async (image: GalleryImage): Promise<void> => {
 
 // 💰 BUDGET PLANNER FUNCTIONS
 export const getBudgetPlannerEntries = async (): Promise<BudgetPlannerEntry[]> => {
-  if (!isSupabaseConfigured()) {
-    console.log('📝 Using localStorage for budget entries (Supabase not configured)');
-    try {
-      const stored = localStorage.getItem("binal_budget_entries");
-      return stored ? JSON.parse(stored) : [getDefaultBudgetEntry()];
-    } catch {
-      return [getDefaultBudgetEntry()];
+  // Always check localStorage first since the budget calculator saves there
+  console.log('📝 Checking localStorage for budget entries...');
+  try {
+    const stored = localStorage.getItem("binal_budget_entries");
+    if (stored) {
+      const localEntries = JSON.parse(stored);
+      if (localEntries && localEntries.length > 0) {
+        console.log(`✅ Found ${localEntries.length} budget entries in localStorage`);
+        return localEntries;
+      }
     }
+  } catch (error) {
+    console.error('❌ Error reading from localStorage:', error);
+  }
+
+  // Fallback to Supabase if localStorage is empty
+  if (!isSupabaseConfigured()) {
+    console.log('📝 No localStorage entries and Supabase not configured');
+    return [getDefaultBudgetEntry()];
   }
 
   try {
@@ -413,55 +424,93 @@ export const getBudgetPlannerEntries = async (): Promise<BudgetPlannerEntry[]> =
     
   } catch (error) {
     console.error('❌ Error loading budget entries from Supabase:', error);
-    console.log('📝 Falling back to localStorage');
+    console.log('📝 Falling back to default entry');
     try {
-      const stored = localStorage.getItem("binal_budget_entries");
-      return stored ? JSON.parse(stored) : [getDefaultBudgetEntry()];
-    } catch {
       return [getDefaultBudgetEntry()];
     }
   }
 };
 
-// Save budget entry
+// Save budget entry to both localStorage and Supabase
 export const saveBudgetEntry = async (entry: BudgetPlannerEntry): Promise<void> => {
-  if (!isSupabaseConfigured()) {
-    console.log('📝 Saving budget entry to localStorage (Supabase not configured)');
-    const entries = await getBudgetPlannerEntries();
-    const updated = entries.map(e => e.id === entry.id ? entry : e);
-    localStorage.setItem("binal_budget_entries", JSON.stringify(updated));
-    return;
-  }
-
+  // Always save to localStorage first (for immediate access)
+  console.log('📝 Saving budget entry to localStorage...');
   try {
-    console.log('🔄 Saving budget entry to Supabase...');
-    await budgetAPI.createEntry({
-      customer_name: entry.customerName,
-      email: entry.email,
-      phone: entry.phone,
-      event_date: entry.eventDate,
-      services: entry.services,
-      total_amount: entry.totalAmount,
-      additional_notes: entry.additionalNotes
-    });
-    console.log('✅ Budget entry saved successfully');
+    const entries = await getBudgetPlannerEntries();
+    const existingIndex = entries.findIndex(e => e.id === entry.id);
+    let updatedEntries;
+    
+    if (existingIndex >= 0) {
+      // Update existing entry
+      updatedEntries = entries.map(e => e.id === entry.id ? entry : e);
+    } else {
+      // Add new entry
+      updatedEntries = [...entries.filter(e => e.id !== "default"), entry];
+    }
+    
+    localStorage.setItem("binal_budget_entries", JSON.stringify(updatedEntries));
+    console.log('✅ Budget entry saved to localStorage');
+    
+    // Dispatch event for real-time updates
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_budget_entries', value: updatedEntries }
+    }));
     
   } catch (error) {
-    console.error('❌ Error saving budget entry:', error);
-    throw error;
+    console.error('❌ Error saving to localStorage:', error);
+  }
+
+  // Also try to save to Supabase (non-blocking)
+  if (isSupabaseConfigured()) {
+    try {
+      console.log('🔄 Saving budget entry to Supabase...');
+      await budgetAPI.createEntry({
+        id: entry.id,
+        customer_name: entry.name,
+        email: entry.email,
+        phone: entry.phone,
+        event_date: entry.eventDate,
+        services: entry.services,
+        total_amount: entry.totalAmount,
+        additional_notes: entry.additionalNotes,
+        status: entry.status || 'pending'
+      });
+      console.log('✅ Budget entry also saved to Supabase');
+      
+    } catch (error) {
+      console.error('❌ Error saving to Supabase (non-blocking):', error);
+      // Don't throw error, localStorage save was successful
+    }
   }
 };
 
 // Default budget entry
 const getDefaultBudgetEntry = (): BudgetPlannerEntry => ({
   id: "default",
-  customerName: "Sample Customer",
+  name: "Sample Customer",
   email: "customer@example.com",
   phone: "+1 234 567 8900",
   eventDate: "2024-12-25",
-  services: ["Wedding Photography", "Event Videography"],
-  totalAmount: 2500,
-  additionalNotes: "This is a sample budget entry. Create new entries through the admin dashboard."
+  services: [
+    {
+      serviceId: "s1",
+      serviceName: "Wedding Photography",
+      quantity: 1,
+      unitPrice: 50000,
+      totalPrice: 50000
+    },
+    {
+      serviceId: "s2", 
+      serviceName: "Event Videography",
+      quantity: 1,
+      unitPrice: 25000,
+      totalPrice: 25000
+    }
+  ],
+  totalAmount: 75000,
+  additionalNotes: "This is a sample budget entry. Create new entries through the admin dashboard.",
+  status: "pending",
+  submittedAt: new Date().toISOString()
 });
 
 // 🔔 REAL-TIME SUBSCRIPTIONS

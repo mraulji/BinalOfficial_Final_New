@@ -136,7 +136,7 @@ export function Footer() {
             © {new Date().getFullYear()} Binal Studio Photography. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground font-mono">
-            Admin: <span className="text-primary">admin</span> / <span className="text-primary">binal2024</span>
+             <span className="text-primary">Mayursinh</span> / <span className="text-primary">Raulji</span>
           </p>
         </div>
       </div>

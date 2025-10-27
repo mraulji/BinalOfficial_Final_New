@@ -34,14 +34,14 @@ export const sendContactEmail = async (formData: {
   }
 
   const templateParams = {
+    // Standard EmailJS template variables
+    to_name: "Binal Studio",
     from_name: formData.name,
     from_email: formData.email,
-    phone: formData.phone || 'Not provided',
-    message: formData.message,
+    reply_to: formData.email,
     
-    // Additional comprehensive information
-    subject: `New Contact Message from ${formData.name}`,
-    full_message: `
+    // Contact details in the message body
+    message: `
 CONTACT INFORMATION:
 Name: ${formData.name}
 Email: ${formData.email}
@@ -56,11 +56,22 @@ Reply directly to this email to respond to the customer.
     `.trim(),
   };
 
+  console.log('📧 Sending contact email with params:', templateParams);
+  
   return emailjs.send(
     EMAIL_CONFIG.SERVICE_ID,
     EMAIL_CONFIG.TEMPLATE_ID_CONTACT,
     templateParams,
     EMAIL_CONFIG.PUBLIC_KEY
+  ).then(
+    (response) => {
+      console.log('✅ Contact email sent successfully:', response);
+      return response;
+    },
+    (error) => {
+      console.error('❌ Contact email failed:', error);
+      throw error;
+    }
   );
 };
 
@@ -89,18 +100,14 @@ export const sendBudgetEmail = async (budgetData: {
     .join('\n');
 
   const templateParams = {
+    // Standard EmailJS template variables
+    to_name: "Binal Studio",
     from_name: budgetData.name,
     from_email: budgetData.email,
-    phone: budgetData.phone || 'Not provided',
-    event_date: budgetData.eventDate || 'Not specified',
-    total_amount: `₹${budgetData.totalAmount.toLocaleString()}`,
+    reply_to: budgetData.email,
     
-    // Comprehensive information
-    subject: `Budget Request from ${budgetData.name} - ₹${budgetData.totalAmount.toLocaleString()}`,
-    services_list: servicesList,
-    message: budgetData.additionalNotes || 'No additional notes provided',
-    
-    full_message: `
+    // Budget details in the message body
+    message: `
 CUSTOMER INFORMATION:
 Name: ${budgetData.name}
 Email: ${budgetData.email}
@@ -121,11 +128,22 @@ Reply directly to this email to respond to the customer.
     `.trim(),
   };
 
+  console.log('📧 Sending budget email with params:', templateParams);
+  
   return emailjs.send(
     EMAIL_CONFIG.SERVICE_ID,
     EMAIL_CONFIG.TEMPLATE_ID_BUDGET,
     templateParams,
     EMAIL_CONFIG.PUBLIC_KEY
+  ).then(
+    (response) => {
+      console.log('✅ Budget email sent successfully:', response);
+      return response;
+    },
+    (error) => {
+      console.error('❌ Budget email failed:', error);
+      throw error;
+    }
   );
 };
 

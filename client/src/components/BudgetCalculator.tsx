@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { getServices, STORAGE_KEYS } from "@/lib/data";
 import { sendBudgetEmail } from "@/lib/emailService";
+import { saveBudgetEntry } from "@/lib/supabaseData";
 import type { Service, BudgetPlannerEntry } from "@shared/schema";
 
 export function BudgetCalculator() {
@@ -121,15 +122,8 @@ export function BudgetCalculator() {
         submittedAt: new Date().toISOString(),
       };
 
-      // Save to localStorage for admin panel
-      const existingEntries = JSON.parse(localStorage.getItem(STORAGE_KEYS.BUDGET_ENTRIES) || "[]");
-      const updatedEntries = [...existingEntries, budgetEntry];
-      localStorage.setItem(STORAGE_KEYS.BUDGET_ENTRIES, JSON.stringify(updatedEntries));
-      
-      // Dispatch event to notify admin dashboard
-      window.dispatchEvent(new CustomEvent('localStorage-update', {
-        detail: { key: STORAGE_KEYS.BUDGET_ENTRIES, value: updatedEntries }
-      }));
+      // Save budget entry (to both localStorage and Supabase)
+      await saveBudgetEntry(budgetEntry);
 
       // Send email notification
       try {
