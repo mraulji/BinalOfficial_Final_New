@@ -9,9 +9,10 @@ interface SimpleImageUploadProps {
   imageId: string;
   currentUrl?: string;
   onUpdate: (imageId: string, url: string) => void;
+  disableCompression?: boolean; // New prop to disable compression for carousel images
 }
 
-export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImageUploadProps) {
+export function SimpleImageUpload({ imageId, currentUrl, onUpdate, disableCompression = false }: SimpleImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [urlInput, setUrlInput] = useState(currentUrl || '');
   const { toast } = useToast();
@@ -85,7 +86,16 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
     try {
       let imageDataUrl: string;
       
-      if (fileSizeKB > maxSizeKB) {
+      if (disableCompression) {
+        // For carousel images - use original size without compression
+        console.log(`🎠 Carousel mode: Using original image size (${fileSizeKB.toFixed(1)}KB)`);
+        imageDataUrl = await convertToBase64(file);
+        
+        toast({
+          title: "Uploading original image...",
+          description: `Using full quality image (${fileSizeKB.toFixed(1)}KB)`,
+        });
+      } else if (fileSizeKB > maxSizeKB) {
         toast({
           title: "Compressing image...",
           description: `File is ${fileSizeKB.toFixed(1)}KB. Compressing for faster loading...`,
@@ -98,13 +108,16 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
         imageDataUrl = await convertToBase64(file);
       }
       
-      // Final validation - check data URL size
-      const dataUrlSizeKB = new Blob([imageDataUrl]).size / 1024;
-      if (dataUrlSizeKB > 150) {
-        throw new Error(`Image data URL too large (${dataUrlSizeKB.toFixed(1)}KB) - may cause browser issues`);
+      // Final validation - skip size check for carousel images
+      if (!disableCompression) {
+        const dataUrlSizeKB = new Blob([imageDataUrl]).size / 1024;
+        if (dataUrlSizeKB > 150) {
+          throw new Error(`Image data URL too large (${dataUrlSizeKB.toFixed(1)}KB) - may cause browser issues`);
+        }
       }
       
-      console.log(`✅ SimpleImageUpload: Image processed for ${imageId} (${dataUrlSizeKB.toFixed(1)}KB)`);
+      const finalSizeKB = new Blob([imageDataUrl]).size / 1024;
+      console.log(`✅ SimpleImageUpload: Image processed for ${imageId} (${finalSizeKB.toFixed(1)}KB)`);
       
       // Update URL input and trigger callback
       onUpdate(imageId, imageDataUrl);
@@ -115,9 +128,11 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate }: SimpleImage
       
       toast({
         title: "Image uploaded successfully!",
-        description: fileSizeKB > maxSizeKB 
-          ? "Image was compressed and is ready to use!"
-          : "Your image is ready and will load instantly!",
+        description: disableCompression 
+          ? `Original quality image uploaded (${fileSizeKB.toFixed(1)}KB)!`
+          : fileSizeKB > maxSizeKB 
+            ? "Image was compressed and is ready to use!"
+            : "Your image is ready and will load instantly!",
       });
     } catch (error) {
       console.error(`❌ Image processing error for ${imageId}:`, error);

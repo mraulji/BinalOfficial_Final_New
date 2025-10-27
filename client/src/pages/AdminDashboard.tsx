@@ -448,6 +448,7 @@ export default function AdminDashboard() {
                           <SimpleImageUpload
                             imageId={image.id}
                             currentUrl={image.url}
+                            disableCompression={true}
                             onUpdate={(imageId: string, url: string) => {
                               console.log(`🎠 DIRECT CAROUSEL: Updating ${imageId} with ${url}`);
                               updateCarouselImageByIndex(index, "url", url);
