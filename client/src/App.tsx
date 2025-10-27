@@ -26,7 +26,7 @@ function App() {
     // Initialize Supabase real-time updates
     setupRealTimeUpdates();
     
-    console.log('🌐 App initialized with direct sync');
+    console.log('🌐 App initialized with Supabase database');
   }, []);
 
   return (

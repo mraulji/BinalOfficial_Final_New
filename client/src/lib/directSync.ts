@@ -14,6 +14,13 @@ class DirectSyncManager {
 
   // Add or update an image URL
   updateImage(id: string, url: string) {
+    // Safety check for URL size to prevent header issues
+    const urlSizeKB = new Blob([url]).size / 1024;
+    if (urlSizeKB > 150) {
+      console.warn(`⚠️ URL too large for sync (${urlSizeKB.toFixed(1)}KB): ${id} - skipping to prevent header issues`);
+      return;
+    }
+    
     this.syncData.images[id] = url;
     this.syncData.lastUpdated = Date.now();
     
@@ -23,7 +30,7 @@ class DirectSyncManager {
     // Force update URL to broadcast change
     this.updatePageUrl();
     
-    console.log(`🔄 Direct sync updated: ${id} → ${url}`);
+    console.log(`🔄 Direct sync updated: ${id} → ${url.substring(0, 50)}...`);
   }
 
   // Get image URL (returns Cloudinary if available, default otherwise)

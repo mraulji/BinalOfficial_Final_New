@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { carouselAPI, galleryAPI, budgetAPI, subscribeToChanges } from "./supabase";
+import { carouselAPI, galleryAPI, budgetAPI, subscribeToChanges, type CarouselItem } from "./supabase";
 
 // Import stock images for fallback
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -54,18 +54,90 @@ const fallbackCarouselImages: CarouselImage[] = [
 ];
 
 const fallbackGalleryImages: GalleryImage[] = [
-  { id: "g1", url: carousel1, title: "Wedding Photography", primary: true },
-  { id: "g2", url: carousel2, title: "Wedding Photography" },
-  { id: "g3", url: carousel3, title: "Wedding Photography" },
-  { id: "g4", url: carousel4, title: "Wedding Photography" },
-  { id: "g5", url: carousel5, title: "Wedding Photography" },
-  { id: "g6", url: portrait1, title: "Professional Portrait", primary: true },
-  { id: "g7", url: portrait2, title: "Professional Portrait" },
-  { id: "g8", url: portrait3, title: "Professional Portrait" },
-  { id: "g9", url: portrait4, title: "Professional Portrait" },
-  { id: "g10", url: event1, title: "Corporate Event", primary: true },
-  { id: "g11", url: event2, title: "Corporate Event" },
-  { id: "g12", url: event3, title: "Corporate Event" },
+  { 
+    id: "g1", 
+    url: carousel1, 
+    title: "Elegant Wedding Ceremony", 
+    category: "wedding",
+    primaryCategory: "wedding"
+  },
+  { 
+    id: "g2", 
+    url: carousel2, 
+    title: "Bridal Portrait Session", 
+    category: "wedding",
+    primaryCategory: "wedding"
+  },
+  { 
+    id: "g3", 
+    url: carousel3, 
+    title: "Wedding Reception Moments", 
+    category: "wedding",
+    primaryCategory: "wedding"
+  },
+  { 
+    id: "g4", 
+    url: carousel4, 
+    title: "Wedding Day Details", 
+    category: "wedding",
+    primaryCategory: "wedding"
+  },
+  { 
+    id: "g5", 
+    url: carousel5, 
+    title: "Romantic Wedding Photography", 
+    category: "wedding",
+    primaryCategory: "wedding"
+  },
+  { 
+    id: "g6", 
+    url: portrait1, 
+    title: "Professional Business Portrait", 
+    category: "portraits",
+    primaryCategory: "portraits"
+  },
+  { 
+    id: "g7", 
+    url: portrait2, 
+    title: "Executive Headshot", 
+    category: "portraits",
+    primaryCategory: "portraits"
+  },
+  { 
+    id: "g8", 
+    url: portrait3, 
+    title: "Studio Portrait Session", 
+    category: "portraits",
+    primaryCategory: "portraits"
+  },
+  { 
+    id: "g9", 
+    url: portrait4, 
+    title: "Professional Lifestyle Portrait", 
+    category: "portraits",
+    primaryCategory: "portraits"
+  },
+  { 
+    id: "g10", 
+    url: event1, 
+    title: "Corporate Conference", 
+    category: "events",
+    primaryCategory: "events"
+  },
+  { 
+    id: "g11", 
+    url: event2, 
+    title: "Business Event Photography", 
+    category: "events",
+    primaryCategory: "events"
+  },
+  { 
+    id: "g12", 
+    url: event3, 
+    title: "Corporate Networking Event", 
+    category: "events",
+    primaryCategory: "events"
+  },
 ];
 
 // Check if Supabase is configured (either via env vars or fallback values)
@@ -105,16 +177,16 @@ export const getCarouselImages = async (): Promise<CarouselImage[]> => {
 };
 
 // Update carousel image
-export const updateCarouselImage = async (id: string, url: string): Promise<void> => {
+export const updateCarouselImage = async (id: string, updates: Partial<CarouselItem>): Promise<void> => {
   if (!isSupabaseConfigured()) {
     console.log('⚠️ Supabase not configured, cannot update carousel');
     return;
   }
 
   try {
-    console.log(`🔄 Updating carousel image ${id}...`);
-    await carouselAPI.updateItem(id, url);
-    console.log('✅ Carousel image updated successfully');
+    console.log(`🔄 Updating carousel item ${id}...`, updates);
+    await carouselAPI.updateCarouselItem(id, updates);
+    console.log('✅ Carousel item updated successfully');
     
     // Trigger storage event for real-time updates
     window.dispatchEvent(new StorageEvent('storage', {
@@ -123,7 +195,7 @@ export const updateCarouselImage = async (id: string, url: string): Promise<void
     }));
     
   } catch (error) {
-    console.error('❌ Error updating carousel image:', error);
+    console.error('❌ Error updating carousel item:', error);
     throw error;
   }
 };
@@ -140,12 +212,28 @@ export const getGalleryImages = async (): Promise<GalleryImage[]> => {
     const supabaseData = await galleryAPI.getAll();
     
     // Convert Supabase data to GalleryImage format
-    const galleryImages: GalleryImage[] = supabaseData.map(item => ({
-      id: item.id,
-      url: item.url,
-      title: item.title || 'Gallery Image',
-      primary: item.is_primary || false
-    }));
+    const galleryImages: GalleryImage[] = supabaseData.map(item => {
+      // Fix corrupted URL data - if url is a JSON object, extract the actual URL
+      let cleanUrl = item.url;
+      if (typeof item.url === 'string' && item.url.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(item.url);
+          cleanUrl = parsed.url || item.url;
+        } catch (e) {
+          console.warn('Failed to parse URL JSON for item', item.id);
+        }
+      }
+      
+      return {
+        id: item.id,
+        url: cleanUrl,
+        title: item.title || 'Gallery Image',
+        category: (item.category as any) || 'wedding', // Default category
+        primaryCategory: (item.primary_category as any) || 'wedding',
+        secondaryCategory: item.secondary_category as any,
+        description: item.description || undefined
+      };
+    });
 
     console.log(`✅ Loaded ${galleryImages.length} gallery images from database`);
     return galleryImages;
@@ -157,7 +245,7 @@ export const getGalleryImages = async (): Promise<GalleryImage[]> => {
   }
 };
 
-// Update gallery image
+// Update gallery image URL only
 export const updateGalleryImage = async (id: string, url: string): Promise<void> => {
   if (!isSupabaseConfigured()) {
     console.log('⚠️ Supabase not configured, cannot update gallery');
@@ -177,6 +265,52 @@ export const updateGalleryImage = async (id: string, url: string): Promise<void>
     
   } catch (error) {
     console.error('❌ Error updating gallery image:', error);
+    throw error;
+  }
+};
+
+// Update complete gallery image
+export const saveGalleryImage = async (image: GalleryImage): Promise<void> => {
+  if (!isSupabaseConfigured()) {
+    console.log('⚠️ Supabase not configured, cannot save gallery image');
+    return;
+  }
+
+  try {
+    console.log(`🔄 Saving complete gallery image ${image.id}...`);
+    
+    // Convert GalleryImage to GalleryItem for database
+    // Ensure URL is a string, not an object
+    const cleanUrl = typeof image.url === 'string' ? image.url : String(image.url);
+    
+    // Only use fields that exist in the actual database schema
+    const galleryItem = {
+      id: image.id,
+      url: cleanUrl,
+      title: image.title,
+      category: image.primaryCategory || image.category || 'wedding', // Use primaryCategory as main category
+      description: image.description
+    };
+    
+    try {
+      // Try to update first
+      await galleryAPI.updateFullItem(image.id, galleryItem);
+    } catch (updateError) {
+      // If update fails, try to create new item
+      console.log(`📝 Item ${image.id} doesn't exist, creating new...`);
+      await galleryAPI.createItem(galleryItem);
+    }
+    
+    console.log('✅ Complete gallery image saved successfully');
+    
+    // Trigger storage event for real-time updates
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'binal_gallery_images',
+      newValue: JSON.stringify(await getGalleryImages())
+    }));
+    
+  } catch (error) {
+    console.error('❌ Error saving complete gallery image:', error);
     throw error;
   }
 };

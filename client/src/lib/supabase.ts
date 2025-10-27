@@ -30,7 +30,7 @@ export interface GalleryItem {
   url: string
   title?: string
   category?: string
-  is_primary?: boolean
+  description?: string
   created_at?: string
   updated_at?: string
 }
@@ -89,6 +89,28 @@ export const carouselAPI = {
     return data
   },
 
+  // Update carousel item (full update)
+  async updateCarouselItem(id: string, updates: Partial<CarouselItem>): Promise<CarouselItem> {
+    console.log(`🔄 Updating carousel item ${id} with updates...`, updates)
+    const { data, error } = await supabase
+      .from('carousel_items')
+      .update({ 
+        ...updates,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('❌ Error updating carousel:', error)
+      throw error
+    }
+    
+    console.log('✅ Carousel item updated:', data)
+    return data
+  },
+
   // Create carousel item
   async createItem(item: Omit<CarouselItem, 'created_at' | 'updated_at'>): Promise<CarouselItem> {
     console.log('🔄 Creating new carousel item...')
@@ -131,7 +153,7 @@ export const galleryAPI = {
     return data || []
   },
 
-  // Update gallery item
+  // Update gallery item URL only
   async updateItem(id: string, url: string): Promise<GalleryItem> {
     console.log(`🔄 Updating gallery item ${id} with new URL...`)
     const { data, error } = await supabase
@@ -150,6 +172,28 @@ export const galleryAPI = {
     }
     
     console.log('✅ Gallery item updated:', data)
+    return data
+  },
+
+  // Update full gallery item
+  async updateFullItem(id: string, updates: Partial<GalleryItem>): Promise<GalleryItem> {
+    console.log(`🔄 Updating full gallery item ${id}...`)
+    const { data, error } = await supabase
+      .from('gallery_items')
+      .update({ 
+        ...updates,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('❌ Error updating gallery item:', error)
+      throw error
+    }
+    
+    console.log('✅ Gallery item fully updated:', data)
     return data
   },
 

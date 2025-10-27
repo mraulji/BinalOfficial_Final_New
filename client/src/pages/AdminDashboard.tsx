@@ -32,9 +32,10 @@ import {
   getBudgetPlannerEntries,
   updateCarouselImage,
   updateGalleryImage,
+  saveGalleryImage,
   saveBudgetEntry
 } from "@/lib/supabaseData";
-import { getServices, getVideos, STORAGE_KEYS } from "@/lib/data";
+import { getServices, getVideos, STORAGE_KEYS, saveServices, saveVideos, saveBudgetPlannerEntries } from "@/lib/data";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -76,6 +77,13 @@ export default function AdminDashboard() {
         setVideos(getVideos());
         
         console.log('AdminDashboard: Loaded all data successfully');
+        console.log('🖼️ Gallery Images Details:', gallery.map(img => ({
+          id: img.id,
+          hasUrl: !!img.url,
+          urlType: img.url ? (img.url.startsWith('data:') ? 'base64' : 'external') : 'none',
+          urlLength: img.url ? img.url.length : 0,
+          title: img.title
+        })));
       } catch (error) {
         console.error('AdminDashboard: Error loading data:', error);
       }
@@ -217,14 +225,94 @@ export default function AdminDashboard() {
   };
 
   // Save functions
-  const handleSaveCarousel = () => {
-    saveCarouselImages(carouselImages);
-    toast({ title: "Carousel saved successfully!" });
+  const handleSaveCarousel = async () => {
+    try {
+      // Save all carousel images to Supabase database
+      for (const image of carouselImages) {
+        await updateCarouselImage(image.id, {
+          url: image.url,
+          title: image.title,
+          subtitle: image.subtitle
+        });
+      }
+      console.log('✅ All carousel images saved to database');
+      toast({ title: "Carousel images saved to database!" });
+    } catch (error) {
+      console.error('Error saving carousel:', error);
+      toast({ title: "Error saving carousel", description: "Please try again", variant: "destructive" });
+    }
   };
 
-  const handleSaveGallery = () => {
-    saveGalleryImages(galleryImages);
-    toast({ title: "Gallery saved successfully!" });
+  const handleSaveGallery = async () => {
+    try {
+      // Save all gallery images to Supabase database
+      for (const image of galleryImages) {
+        await saveGalleryImage(image);
+      }
+      console.log('✅ All gallery images saved to database');
+      toast({ title: "Gallery images saved to database!" });
+    } catch (error) {
+      console.error('Error saving gallery:', error);
+      toast({ title: "Error saving gallery", description: "Please try again", variant: "destructive" });
+    }
+  };
+
+  const handleFixImageUrls = async () => {
+    try {
+      console.log('🔧 Fixing broken image URLs...');
+      
+      // Sample working image URLs from Unsplash
+      const carouselUpdates = [
+        { id: 'c1', url: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&h=800&fit=crop&crop=center' },
+        { id: 'c2', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&h=800&fit=crop&crop=center' },
+        { id: 'c3', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center' },
+        { id: 'c4', url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&h=800&fit=crop&crop=center' },
+        { id: 'c5', url: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1200&h=800&fit=crop&crop=center' }
+      ];
+      
+      const galleryUpdates = [
+        { id: 'g1', url: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g2', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g3', url: 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g4', url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g5', url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g6', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g7', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g8', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g9', url: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g10', url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g11', url: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=600&h=400&fit=crop&crop=center' },
+        { id: 'g12', url: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=400&fit=crop&crop=center' }
+      ];
+      
+      // Update carousel images
+      for (const update of carouselUpdates) {
+        await updateCarouselImage(update.id, { url: update.url });
+        console.log(`✅ Updated carousel ${update.id}`);
+      }
+      
+      // Update gallery images
+      for (const update of galleryUpdates) {
+        await updateGalleryImage(update.id, { url: update.url });
+        console.log(`✅ Updated gallery ${update.id}`);
+      }
+      
+      // Reload data to reflect changes
+      await loadData();
+      
+      toast({ 
+        title: "Image URLs Fixed!", 
+        description: "All images now use working placeholder URLs. Refresh to see changes." 
+      });
+      
+    } catch (error) {
+      console.error('Error fixing image URLs:', error);
+      toast({ 
+        title: "Error fixing images", 
+        description: "Please try again", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleSaveServices = () => {
@@ -277,6 +365,10 @@ export default function AdminDashboard() {
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Copy Sync URL
+              </Button>
+              <Button variant="outline" onClick={handleFixImageUrls} data-testid="button-fix-images">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Fix Image URLs
               </Button>
               <Button variant="outline" onClick={() => setLocation("/")} data-testid="button-view-site">
                 <Home className="h-4 w-4 mr-2" />
@@ -433,13 +525,41 @@ export default function AdminDashboard() {
                       <span className="text-xs font-bold bg-green-500 text-white px-2 py-1 rounded">IMAGE #{index + 1}</span>
                       <span className="text-xs text-muted-foreground">ID: {image.id}</span>
                     </div>
-                    <div className="aspect-square bg-muted rounded-lg overflow-hidden">
+                    <div className="aspect-square bg-muted rounded-lg overflow-hidden relative">
+                      {image.url && image.url.trim() !== '' ? (
+                        <>
+                          <img
+                            src={image.url}
+                            alt="Gallery Preview"
+                            className="w-full h-full object-cover"
+                            onLoad={() => console.log(`✅ Image loaded successfully: ${image.id}`)}
+                            onError={(e) => {
+                              console.error(`❌ Image failed to load: ${image.id}`);
+                              console.error(`❌ Failed URL: ${image.url?.substring(0, 100)}...`);
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gray-100">
+                          <div className="text-center">
+                            <p className="text-sm font-medium">No Image</p>
+                            <p className="text-xs">Upload an image below</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Debug Info - temporary */}
+                    <div className="text-xs bg-yellow-100 p-2 rounded border">
+                      <p><strong>ID:</strong> {image.id}</p>
+                      <p><strong>Title:</strong> {image.title || 'No title'}</p>
+                      <p><strong>URL Status:</strong> {image.url ? 'Present' : 'Missing'}</p>
                       {image.url && (
-                        <img
-                          src={image.url}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
+                        <>
+                          <p><strong>URL Type:</strong> {image.url.startsWith('data:') ? 'Base64 Data URL' : 'External URL'}</p>
+                          <p><strong>URL Length:</strong> {image.url.length} chars</p>
+                          <p><strong>URL Start:</strong> {image.url.substring(0, 60)}...</p>
+                        </>
                       )}
                     </div>
                     <SimpleImageUpload
