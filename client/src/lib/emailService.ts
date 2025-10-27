@@ -34,11 +34,26 @@ export const sendContactEmail = async (formData: {
   }
 
   const templateParams = {
-    title: `New Contact Message from ${formData.name}`,
-    name: formData.name,
-    email: formData.email,
+    from_name: formData.name,
+    from_email: formData.email,
     phone: formData.phone || 'Not provided',
     message: formData.message,
+    
+    // Additional comprehensive information
+    subject: `New Contact Message from ${formData.name}`,
+    full_message: `
+CONTACT INFORMATION:
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone || 'Not provided'}
+
+MESSAGE:
+${formData.message}
+
+---
+This message was sent from the Binal Studio Photography website contact form.
+Reply directly to this email to respond to the customer.
+    `.trim(),
   };
 
   return emailjs.send(
@@ -74,11 +89,23 @@ export const sendBudgetEmail = async (budgetData: {
     .join('\n');
 
   const templateParams = {
-    title: `Budget Request from ${budgetData.name} - ₹${budgetData.totalAmount.toLocaleString()}`,
-    name: budgetData.name,
-    email: budgetData.email,
+    from_name: budgetData.name,
+    from_email: budgetData.email,
     phone: budgetData.phone || 'Not provided',
-    message: `EVENT DATE: ${budgetData.eventDate || 'Not specified'}
+    event_date: budgetData.eventDate || 'Not specified',
+    total_amount: `₹${budgetData.totalAmount.toLocaleString()}`,
+    
+    // Comprehensive information
+    subject: `Budget Request from ${budgetData.name} - ₹${budgetData.totalAmount.toLocaleString()}`,
+    services_list: servicesList,
+    message: budgetData.additionalNotes || 'No additional notes provided',
+    
+    full_message: `
+CUSTOMER INFORMATION:
+Name: ${budgetData.name}
+Email: ${budgetData.email}
+Phone: ${budgetData.phone || 'Not provided'}
+Event Date: ${budgetData.eventDate || 'Not specified'}
 
 SELECTED SERVICES:
 ${servicesList}
@@ -86,7 +113,12 @@ ${servicesList}
 TOTAL AMOUNT: ₹${budgetData.totalAmount.toLocaleString()}
 
 ADDITIONAL NOTES:
-${budgetData.additionalNotes || 'None'}`,
+${budgetData.additionalNotes || 'No additional notes provided'}
+
+---
+This budget request was submitted through the Binal Studio Photography website.
+Reply directly to this email to respond to the customer.
+    `.trim(),
   };
 
   return emailjs.send(

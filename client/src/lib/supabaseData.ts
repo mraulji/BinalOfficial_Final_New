@@ -397,13 +397,15 @@ export const getBudgetPlannerEntries = async (): Promise<BudgetPlannerEntry[]> =
     // Convert Supabase data to BudgetPlannerEntry format
     const budgetEntries: BudgetPlannerEntry[] = supabaseData.map(item => ({
       id: item.id,
-      customerName: item.customer_name,
+      name: item.customer_name || item.name || 'Unknown',
       email: item.email,
       phone: item.phone || '',
       eventDate: item.event_date || '',
-      services: item.services,
-      totalAmount: Number(item.total_amount),
-      additionalNotes: item.additional_notes || ''
+      services: Array.isArray(item.services) ? item.services : [],
+      totalAmount: Number(item.total_amount || 0),
+      additionalNotes: item.additional_notes || '',
+      status: item.status || 'pending',
+      submittedAt: item.created_at || new Date().toISOString()
     }));
 
     console.log(`✅ Loaded ${budgetEntries.length} budget entries from database`);
