@@ -67,11 +67,15 @@ export function VideoSection() {
 
   useEffect(() => {
     // Load initial videos
-    setVideos(getVideos());
+    const initialVideos = getVideos();
+    setVideos(initialVideos);
+    console.log('🎬 VideoSection: Loaded initial videos:', initialVideos);
+    console.log('🎬 VideoSection: Videos count:', initialVideos.length);
 
     // Listen for localStorage changes
     const handleStorageChange = (e: CustomEvent) => {
       if (e.detail.key === STORAGE_KEYS.VIDEOS) {
+        console.log('🎬 VideoSection: Received storage change event:', e.detail.value);
         setVideos(e.detail.value);
       }
     };

@@ -75,9 +75,12 @@ export default function AdminDashboard() {
         
         // Load services and videos (these are still sync)
         setServices(getServices());
-        setVideos(getVideos());
+        const loadedVideos = getVideos();
+        setVideos(loadedVideos);
         
         console.log('AdminDashboard: Loaded all data successfully');
+        console.log('🎬 Loaded videos:', loadedVideos);
+        console.log('🎬 Videos count:', loadedVideos.length);
         console.log('🖼️ Gallery Images Details:', gallery.map(img => ({
           id: img.id,
           hasUrl: !!img.url,
@@ -318,6 +321,16 @@ export default function AdminDashboard() {
   };
 
   const handleSaveVideos = () => {
+    console.log('🎬 Saving videos:', videos);
+    console.log('🎬 Videos count:', videos.length);
+    videos.forEach((video, index) => {
+      console.log(`🎬 Video ${index + 1}:`, {
+        id: video.id,
+        title: video.title,
+        youtubeId: video.youtubeId,
+        hasYoutubeId: !!video.youtubeId
+      });
+    });
     saveVideos(videos);
     toast({ title: "Videos saved successfully!" });
   };
