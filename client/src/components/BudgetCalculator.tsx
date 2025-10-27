@@ -105,7 +105,7 @@ export function BudgetCalculator() {
             totalPrice: service.basePrice * quantity,
           };
         })
-        .filter((service): service is NonNullable<typeof service> => service !== null);
+        .filter(Boolean);
 
       // Create budget entry for admin panel
       const budgetEntry: BudgetPlannerEntry = {

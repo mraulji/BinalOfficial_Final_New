@@ -1,7 +1,5 @@
 -- Supabase Database Schema for Binal Studio
-
--- Enable RLS (Row Level Security)
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+-- Run this in Supabase SQL Editor to create your database tables
 
 -- Create carousel_items table
 CREATE TABLE IF NOT EXISTS public.carousel_items (

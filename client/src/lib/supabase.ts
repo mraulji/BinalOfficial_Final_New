@@ -1,8 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Debug environment variables
+console.log('🔍 Environment check:')
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL)
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing')
+
 // Supabase configuration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://extotujyzndfstziqebq.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dG90dWp5em5kZnN0emlxZWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0OTUzNzgsImV4cCI6MjA3NzA3MTM3OH0.iVbFisR7EGy1N-GdKRwlMacqvYZd9LjgsKkxZq0p9GM'
+
+console.log('🚀 Using Supabase URL:', supabaseUrl)
+console.log('🔑 Using Supabase Key:', supabaseKey ? 'Present' : 'Missing')
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 

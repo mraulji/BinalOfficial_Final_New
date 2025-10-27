@@ -34,7 +34,7 @@ import {
   updateGalleryImage,
   saveBudgetEntry
 } from "@/lib/supabaseData";
-import { getServices, getVideos } from "@/lib/data";
+import { getServices, getVideos, STORAGE_KEYS } from "@/lib/data";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -59,13 +59,29 @@ export default function AdminDashboard() {
 
   // Load data
   useEffect(() => {
-    setCarouselImages(getCarouselImages());
-    setGalleryImages(getGalleryImages());
-    setServices(getServices());
-    setVideos(getVideos());
-    const budgetData = getBudgetPlannerEntries();
-    console.log('AdminDashboard: Loaded budget entries:', budgetData);
-    setBudgetEntries(budgetData);
+    const loadData = async () => {
+      try {
+        const [carousel, gallery, budgetData] = await Promise.all([
+          getCarouselImages(),
+          getGalleryImages(),
+          getBudgetPlannerEntries()
+        ]);
+        
+        setCarouselImages(carousel);
+        setGalleryImages(gallery);
+        setBudgetEntries(budgetData);
+        
+        // Load services and videos (these are still sync)
+        setServices(getServices());
+        setVideos(getVideos());
+        
+        console.log('AdminDashboard: Loaded all data successfully');
+      } catch (error) {
+        console.error('AdminDashboard: Error loading data:', error);
+      }
+    };
+
+    loadData();
   }, []);
 
   // Listen for localStorage changes

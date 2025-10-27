@@ -68,11 +68,11 @@ const fallbackGalleryImages: GalleryImage[] = [
   { id: "g12", url: event3, title: "Corporate Event" },
 ];
 
-// Check if Supabase is configured
+// Check if Supabase is configured (either via env vars or fallback values)
 const isSupabaseConfigured = () => {
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  return url && key && url !== 'YOUR_SUPABASE_URL_HERE' && key !== 'YOUR_SUPABASE_ANON_KEY_HERE';
+  // Since we have fallback values in supabase.ts, always return true
+  // The supabase.ts file has the hardcoded credentials as fallback
+  return true;
 };
 
 // 🎠 CAROUSEL DATA FUNCTIONS
