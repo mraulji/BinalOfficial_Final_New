@@ -19,39 +19,8 @@ import event3 from "@assets/stock_images/corporate_event_phot_833549ab.jpg";
 
 import ownerPhoto from "@assets/stock_images/professional_photogr_11293deb.jpg";
 
-// Fallback data (used when Supabase is not configured)
-const fallbackCarouselImages: CarouselImage[] = [
-  {
-    id: "1",
-    url: carousel1,
-    title: "Capturing Life's Beautiful Moments",
-    subtitle: "Professional Photography & Videography Services",
-  },
-  {
-    id: "2",
-    url: carousel2,
-    title: "Your Story, Beautifully Told",
-    subtitle: "Wedding, Events, Portraits & More",
-  },
-  {
-    id: "3",
-    url: carousel3,
-    title: "Excellence in Every Frame",
-    subtitle: "Premium Photography Services Since 2015",
-  },
-  {
-    id: "4",
-    url: carousel4,
-    title: "Creating Timeless Memories",
-    subtitle: "From Weddings to Corporate Events",
-  },
-  {
-    id: "5",
-    url: carousel5,
-    title: "Professional Quality, Personal Touch",
-    subtitle: "Your Trusted Photography Partner",
-  },
-];
+// Empty fallback - no default images to avoid confusion
+const fallbackCarouselImages: CarouselImage[] = [];
 
 const fallbackGalleryImages: GalleryImage[] = [
   { 
@@ -149,49 +118,73 @@ const isSupabaseConfigured = () => {
 
 // 🎠 CAROUSEL DATA FUNCTIONS
 export const getCarouselImages = async (): Promise<CarouselImage[]> => {
-  if (!isSupabaseConfigured()) {
-    console.log('📝 Using fallback carousel data (Supabase not configured)');
-    return fallbackCarouselImages;
-  }
-
-  try {
-    console.log('🔄 Fetching carousel from Supabase...');
-    const supabaseData = await carouselAPI.getAll();
-    
-    // Convert Supabase data to CarouselImage format with URL parsing
-    const carouselImages: CarouselImage[] = supabaseData.map(item => {
-      let cleanUrl = item.url;
+  console.log('🎠 Loading carousel images...');
+  
+  // First check localStorage for immediate response
+  const localCarousel = localStorage.getItem('binal_carousel_images');
+  if (localCarousel) {
+    try {
+      const parsedCarousel = JSON.parse(localCarousel);
+      console.log('🎠 Found carousel in localStorage:', parsedCarousel.length);
       
-      // Handle cases where URL might be stored as JSON object
-      if (typeof item.url === 'string') {
-        try {
-          const parsed = JSON.parse(item.url);
-          if (parsed && typeof parsed === 'object' && parsed.url) {
-            cleanUrl = parsed.url;
-            console.log(`🔧 Extracted URL from JSON for carousel item ${item.id}`);
+      // Still try to sync from database in background
+      if (isSupabaseConfigured()) {
+        carouselAPI.getAll().then(supabaseData => {
+          if (supabaseData.length > 0) {
+            const convertedImages = supabaseData.map(item => ({
+              id: item.id,
+              url: item.url,
+              title: item.title || '',
+              subtitle: item.subtitle || ''
+            }));
+            
+            // Update localStorage if different
+            const currentLocal = JSON.stringify(parsedCarousel);
+            const newLocal = JSON.stringify(convertedImages);
+            if (currentLocal !== newLocal) {
+              console.log('🔄 Syncing carousel from database to localStorage');
+              localStorage.setItem('binal_carousel_images', newLocal);
+            }
           }
-        } catch {
-          // Not JSON, use as-is
-          cleanUrl = item.url;
-        }
+        }).catch(error => {
+          console.warn('⚠️ Background sync failed:', error);
+        });
       }
       
-      return {
-        id: item.id,
-        url: cleanUrl,
-        title: item.title || '',
-        subtitle: item.subtitle || ''
-      };
-    });
-
-    console.log(`✅ Loaded ${carouselImages.length} carousel images from database`);
-    return carouselImages;
-    
-  } catch (error) {
-    console.error('❌ Error loading carousel from Supabase:', error);
-    console.log('📝 Falling back to default images');
-    return fallbackCarouselImages;
+      return parsedCarousel;
+    } catch (error) {
+      console.error('❌ Error parsing localStorage carousel:', error);
+      localStorage.removeItem('binal_carousel_images');
+    }
   }
+  
+  // Try database if no localStorage
+  if (isSupabaseConfigured()) {
+    try {
+      console.log('🔄 Fetching carousel from database...');
+      const supabaseData = await carouselAPI.getAll();
+      
+      if (supabaseData.length > 0) {
+        const carouselImages: CarouselImage[] = supabaseData.map(item => ({
+          id: item.id,
+          url: item.url,
+          title: item.title || '',
+          subtitle: item.subtitle || ''
+        }));
+        
+        // Save to localStorage for faster future access
+        localStorage.setItem('binal_carousel_images', JSON.stringify(carouselImages));
+        console.log(`✅ Loaded ${carouselImages.length} carousel images from database`);
+        return carouselImages;
+      }
+    } catch (error) {
+      console.error('❌ Error loading carousel from database:', error);
+    }
+  }
+  
+  // Return empty array if no data found
+  console.log('⚠️ No carousel images found, returning empty array');
+  return [];
 };
 
 // Update carousel image
@@ -220,42 +213,55 @@ export const updateCarouselImage = async (id: string, updates: Partial<CarouselI
 
 // Save complete carousel image (create or update)
 export const saveCarouselImage = async (image: CarouselImage): Promise<void> => {
-  if (!isSupabaseConfigured()) {
-    console.log('⚠️ Supabase not configured, cannot save carousel image');
-    return;
-  }
-
+  console.log(`🎠 Saving carousel image ${image.id}...`);
+  
   try {
-    console.log(`🔄 Saving complete carousel image ${image.id}...`);
-    
-    // Convert CarouselImage to CarouselItem for database
-    // Ensure URL is a string, not an object
-    const cleanUrl = typeof image.url === 'string' ? image.url : String(image.url);
-    
-    const carouselItem = {
-      id: image.id,
-      url: cleanUrl,
-      title: image.title || '',
-      subtitle: image.subtitle || '',
-      position: 0 // Default position, you might want to calculate this
-    };
-    
-    try {
-      // Try to update first
-      await carouselAPI.updateCarouselItem(image.id, carouselItem);
-    } catch (updateError) {
-      // If update fails, try to create new item
-      console.log(`📝 Item ${image.id} doesn't exist, creating new...`);
-      await carouselAPI.createItem(carouselItem);
+    // Save to database if configured
+    if (isSupabaseConfigured()) {
+      // Ensure URL is clean string
+      const cleanUrl = typeof image.url === 'string' ? image.url : String(image.url);
+      
+      const carouselItem = {
+        id: image.id,
+        url: cleanUrl,
+        title: image.title || '',
+        subtitle: image.subtitle || '',
+        position: parseInt(image.id) || 0
+      };
+      
+      try {
+        // Try to update first
+        await carouselAPI.updateCarouselItem(image.id, carouselItem);
+      } catch (updateError) {
+        // If update fails, create new item
+        console.log(`📝 Creating new carousel item ${image.id}...`);
+        await carouselAPI.createItem(carouselItem);
+      }
+      
+      console.log('✅ Carousel image saved to database');
     }
     
-    console.log('✅ Complete carousel image saved successfully');
+    // Always update localStorage
+    const currentCarousel = localStorage.getItem('binal_carousel_images');
+    let carouselArray = currentCarousel ? JSON.parse(currentCarousel) : [];
     
-    // Trigger storage event for real-time updates
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'binal_carousel_images',
-      newValue: JSON.stringify(await getCarouselImages())
+    // Update or add the image
+    const existingIndex = carouselArray.findIndex((img: CarouselImage) => img.id === image.id);
+    if (existingIndex >= 0) {
+      carouselArray[existingIndex] = image;
+    } else {
+      carouselArray.push(image);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('binal_carousel_images', JSON.stringify(carouselArray));
+    
+    // Dispatch custom event for real-time updates
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_carousel_images', value: carouselArray }
     }));
+    
+    console.log('✅ Carousel image saved and events dispatched');
     
   } catch (error) {
     console.error('❌ Error saving carousel image:', error);

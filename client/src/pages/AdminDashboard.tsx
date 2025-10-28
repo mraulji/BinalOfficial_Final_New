@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { SimpleImageUpload } from "@/components/SimpleImageUpload";
 import { EmailSetup } from "@/components/EmailSetup";
+import { ImageDimensions } from "@/components/ImageDimensions";
 import { updateGlobalCacheBuster } from "@/lib/cacheManager";
 import { directSyncManager } from "@/lib/directSync";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,8 @@ export default function AdminDashboard() {
           }
         }
         
-        console.log('AdminDashboard: Loaded all data successfully');
+        console.log('AdminDashboard: All data loaded successfully');
+        console.log('🎠 Final carousel state:', carousel.map(img => ({ id: img.id, hasUrl: !!img.url, urlLength: img.url?.length })));
         console.log('🖼️ Gallery Images Details:', gallery.map(img => ({
           id: img.id,
           hasUrl: !!img.url,
@@ -248,14 +250,29 @@ export default function AdminDashboard() {
   // Save functions
   const handleSaveCarousel = async () => {
     try {
-      // Save all carousel images to Supabase database (create or update)
-      for (const image of carouselImages) {
+      console.log('🎠 Saving carousel images:', carouselImages.length);
+      
+      // Filter out any empty or default images
+      const validImages = carouselImages.filter(img => 
+        img.url && img.url.trim() !== '' && !img.url.includes('/assets/stock_images/')
+      );
+      
+      console.log('🎠 Valid images to save:', validImages.length);
+      
+      if (validImages.length === 0) {
+        toast({ title: "No valid images to save", description: "Please upload some images first", variant: "destructive" });
+        return;
+      }
+      
+      // Save all valid carousel images
+      for (const image of validImages) {
         await saveCarouselImage(image);
       }
-      console.log('✅ All carousel images saved to database');
-      toast({ title: "Carousel images saved to database!" });
+      
+      console.log('✅ All carousel images saved successfully');
+      toast({ title: "Carousel images saved successfully!", description: `${validImages.length} images saved` });
     } catch (error) {
-      console.error('Error saving carousel:', error);
+      console.error('❌ Error saving carousel:', error);
       toast({ title: "Error saving carousel", description: "Please try again", variant: "destructive" });
     }
   };
@@ -480,6 +497,17 @@ export default function AdminDashboard() {
                 <Button onClick={addCarouselImage} data-testid="button-add-carousel">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Slide
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setCarouselImages([]);
+                    localStorage.removeItem('binal_carousel_images');
+                    toast({ title: "Carousel cleared", description: "All images removed. Add new ones and save." });
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
                 </Button>
                 <Button onClick={handleSaveCarousel} data-testid="button-save-carousel">
                   <Save className="h-4 w-4 mr-2" />

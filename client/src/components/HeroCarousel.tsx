@@ -28,17 +28,17 @@ export function HeroCarousel() {
     loadImages();
 
     // Listen for real-time updates
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'binal_carousel_images' && e.newValue) {
-        const updatedImages = JSON.parse(e.newValue);
-        setImages(updatedImages);
+    const handleStorageChange = (e: CustomEvent) => {
+      if (e.detail?.key === 'binal_carousel_images' && e.detail?.value) {
+        console.log('🎠 HeroCarousel: Received carousel update event', e.detail.value);
+        setImages(e.detail.value);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorage-update', handleStorageChange as EventListener);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorage-update', handleStorageChange as EventListener);
     };
   }, []);
 
