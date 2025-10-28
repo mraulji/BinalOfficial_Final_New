@@ -68,10 +68,21 @@ export function VideoSection() {
   useEffect(() => {
     // Load initial videos
     const loadVideos = async () => {
-      const initialVideos = await getVideos();
-      setVideos(initialVideos);
-      console.log('🎬 VideoSection: Loaded initial videos:', initialVideos);
-      console.log('🎬 VideoSection: Videos count:', initialVideos.length);
+      try {
+        const initialVideos = await getVideos();
+        setVideos(initialVideos);
+        console.log('🎬 VideoSection: Loaded initial videos:', initialVideos);
+        console.log('🎬 VideoSection: Videos count:', initialVideos.length);
+      } catch (error) {
+        console.error('❌ VideoSection: Error loading videos:', error);
+        // Fallback to localStorage
+        const localVideos = localStorage.getItem('binal_videos');
+        if (localVideos) {
+          const parsedVideos = JSON.parse(localVideos);
+          setVideos(parsedVideos);
+          console.log('🎬 VideoSection: Fallback to localStorage videos:', parsedVideos.length);
+        }
+      }
     };
     loadVideos();
 

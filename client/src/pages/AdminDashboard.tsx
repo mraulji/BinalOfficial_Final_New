@@ -38,7 +38,7 @@ import {
   getVideos as getVideosFromSupabase,
   saveVideo
 } from "@/lib/supabaseData";
-import { getServices, getVideos, STORAGE_KEYS, saveServices, saveVideos, saveBudgetPlannerEntries } from "@/lib/data";
+import { getServices, STORAGE_KEYS, saveServices, saveBudgetPlannerEntries } from "@/lib/data";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -77,12 +77,27 @@ export default function AdminDashboard() {
         
         // Load services and videos
         setServices(getServices());
-        const loadedVideos = await getVideosFromSupabase();
-        setVideos(loadedVideos);
+        
+        try {
+          const loadedVideos = await getVideosFromSupabase();
+          setVideos(loadedVideos);
+          console.log('✅ Loaded videos from database/localStorage:', loadedVideos.length);
+        } catch (error) {
+          console.error('❌ Error loading videos:', error);
+          // Fallback to localStorage only
+          const localVideos = localStorage.getItem('binal_videos');
+          if (localVideos) {
+            const parsedVideos = JSON.parse(localVideos);
+            setVideos(parsedVideos);
+            console.log('✅ Loaded videos from localStorage fallback:', parsedVideos.length);
+          } else {
+            // Set empty array if nothing exists
+            setVideos([]);
+            console.log('⚠️ No videos found, starting with empty array');
+          }
+        }
         
         console.log('AdminDashboard: Loaded all data successfully');
-        console.log('🎬 Loaded videos:', loadedVideos);
-        console.log('🎬 Videos count:', loadedVideos.length);
         console.log('🖼️ Gallery Images Details:', gallery.map(img => ({
           id: img.id,
           hasUrl: !!img.url,
@@ -335,15 +350,30 @@ export default function AdminDashboard() {
     });
     
     try {
-      // Save all videos to Supabase database
+      // Try to save to Supabase database first
+      console.log('🔄 Attempting to save to database...');
       for (const video of videos) {
         await saveVideo(video);
       }
       console.log('✅ All videos saved to database');
       toast({ title: "Videos saved to database successfully!" });
     } catch (error) {
-      console.error('Error saving videos:', error);
-      toast({ title: "Error saving videos", description: "Please try again", variant: "destructive" });
+      console.error('❌ Database save failed, falling back to localStorage:', error);
+      
+      // Fallback to localStorage with proper event dispatching
+      localStorage.setItem('binal_videos', JSON.stringify(videos));
+      
+      // Dispatch event to notify frontend components
+      window.dispatchEvent(new CustomEvent('localStorage-update', {
+        detail: { key: 'binal_videos', value: videos }
+      }));
+      
+      console.log('✅ Videos saved to localStorage with event dispatch');
+      toast({ 
+        title: "Videos saved locally", 
+        description: "Database table not ready. Videos saved to browser storage.", 
+        variant: "default" 
+      });
     }
   };
 
