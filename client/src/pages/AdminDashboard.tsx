@@ -158,6 +158,30 @@ export default function AdminDashboard() {
     setCarouselImages([...carouselImages, newImage]);
   };
 
+  const clearCarouselStorage = () => {
+    try {
+      // Clear localStorage
+      localStorage.removeItem('binal_carousel_images');
+      
+      // Clear other potentially large items
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('binal_') && localStorage.getItem(key)!.length > 100000) { // > 100KB
+          console.log(`🧹 Clearing large localStorage item: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Reset carousel state
+      setCarouselImages([]);
+      
+      toast({ title: "Storage cleared", description: "Cleared all carousel data and large items from storage" });
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+      toast({ title: "Error clearing storage", variant: "destructive" });
+    }
+  };
+
   // Gallery functions
   const updateGalleryImageById = (imageId: string, field: keyof GalleryImage, value: string) => {
     console.log(`🆔 UPDATE BY ID: imageId="${imageId}", field="${field}", value="${value}"`);
@@ -491,7 +515,20 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="font-serif text-2xl font-bold">Manage Carousel Images</h2>
-                <p className="text-muted-foreground mt-1">Update homepage hero carousel slides</p>
+                <p className="text-muted-foreground mt-1">
+                  Update homepage hero carousel slides
+                  <span className="ml-2 text-xs">
+                    (Storage: {(() => {
+                      try {
+                        const carouselData = localStorage.getItem('binal_carousel_images');
+                        const sizeKB = carouselData ? (carouselData.length / 1024).toFixed(0) : 0;
+                        return `${sizeKB}KB`;
+                      } catch {
+                        return 'N/A';
+                      }
+                    })()})
+                  </span>
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button onClick={addCarouselImage} data-testid="button-add-carousel">
@@ -500,11 +537,7 @@ export default function AdminDashboard() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setCarouselImages([]);
-                    localStorage.removeItem('binal_carousel_images');
-                    toast({ title: "Carousel cleared", description: "All images removed. Add new ones and save." });
-                  }}
+                  onClick={clearCarouselStorage}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Clear All

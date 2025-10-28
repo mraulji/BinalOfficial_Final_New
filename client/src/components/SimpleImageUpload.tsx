@@ -80,36 +80,42 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate, disableCompre
     
     // Check file size
     const fileSizeKB = file.size / 1024;
-    const maxSizeKB = 100; // Reduced to 100KB to prevent header size issues
     
     setIsUploading(true);
     try {
       let imageDataUrl: string;
       
       if (disableCompression) {
-        // For carousel images - use original size without compression
-        console.log(`🎠 Carousel mode: Using original image size (${fileSizeKB.toFixed(1)}KB)`);
-        imageDataUrl = await convertToBase64(file);
+        // For carousel images - use moderate compression to avoid localStorage quota
+        console.log(`🎠 Carousel mode: Using moderate compression for storage (${fileSizeKB.toFixed(1)}KB)`);
         
-        toast({
-          title: "Uploading original image...",
-          description: `Using full quality image (${fileSizeKB.toFixed(1)}KB)`,
-        });
-      } else if (fileSizeKB > maxSizeKB) {
-        toast({
-          title: "Compressing image...",
-          description: `File is ${fileSizeKB.toFixed(1)}KB. Compressing for faster loading...`,
-        });
+        // Use larger compression settings for carousel to maintain quality while fitting in localStorage
+        const carouselMaxSizeKB = 500; // Increased size limit for carousel
         
-        // Compress the image
-        imageDataUrl = await compressImage(file, maxSizeKB);
+        if (fileSizeKB > carouselMaxSizeKB) {
+          toast({
+            title: "Optimizing carousel image...",
+            description: `Compressing ${fileSizeKB.toFixed(1)}KB image for storage`,
+          });
+          imageDataUrl = await compressImage(file, carouselMaxSizeKB);
+        } else {
+          imageDataUrl = await convertToBase64(file);
+        }
       } else {
-        // Convert directly to base64
-        imageDataUrl = await convertToBase64(file);
-      }
-      
-      // Final validation - skip size check for carousel images
-      if (!disableCompression) {
+        // For gallery images - use original compression logic
+        const maxSizeKB = 100;
+        
+        if (fileSizeKB > maxSizeKB) {
+          toast({
+            title: "Compressing image...",
+            description: `File is ${fileSizeKB.toFixed(1)}KB. Compressing for faster loading...`,
+          });
+          imageDataUrl = await compressImage(file, maxSizeKB);
+        } else {
+          imageDataUrl = await convertToBase64(file);
+        }
+        
+        // Size validation for gallery images
         const dataUrlSizeKB = new Blob([imageDataUrl]).size / 1024;
         if (dataUrlSizeKB > 150) {
           throw new Error(`Image data URL too large (${dataUrlSizeKB.toFixed(1)}KB) - may cause browser issues`);
@@ -118,6 +124,11 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate, disableCompre
       
       const finalSizeKB = new Blob([imageDataUrl]).size / 1024;
       console.log(`✅ SimpleImageUpload: Image processed for ${imageId} (${finalSizeKB.toFixed(1)}KB)`);
+      
+      // Check if the final result might cause localStorage quota issues
+      if (finalSizeKB > 1000) { // 1MB warning
+        console.warn(`⚠️ Large image size may cause storage issues: ${finalSizeKB.toFixed(1)}KB`);
+      }
       
       // Update URL input and trigger callback
       onUpdate(imageId, imageDataUrl);
@@ -129,8 +140,8 @@ export function SimpleImageUpload({ imageId, currentUrl, onUpdate, disableCompre
       toast({
         title: "Image uploaded successfully!",
         description: disableCompression 
-          ? `Original quality image uploaded (${fileSizeKB.toFixed(1)}KB)!`
-          : fileSizeKB > maxSizeKB 
+          ? `Carousel image optimized (${finalSizeKB.toFixed(1)}KB)`
+          : fileSizeKB > 100 
             ? "Image was compressed and is ready to use!"
             : "Your image is ready and will load instantly!",
       });

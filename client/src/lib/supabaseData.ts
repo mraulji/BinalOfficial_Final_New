@@ -241,27 +241,58 @@ export const saveCarouselImage = async (image: CarouselImage): Promise<void> => 
       console.log('✅ Carousel image saved to database');
     }
     
-    // Always update localStorage
-    const currentCarousel = localStorage.getItem('binal_carousel_images');
-    let carouselArray = currentCarousel ? JSON.parse(currentCarousel) : [];
-    
-    // Update or add the image
-    const existingIndex = carouselArray.findIndex((img: CarouselImage) => img.id === image.id);
-    if (existingIndex >= 0) {
-      carouselArray[existingIndex] = image;
-    } else {
-      carouselArray.push(image);
+    // Try to update localStorage with error handling
+    try {
+      const currentCarousel = localStorage.getItem('binal_carousel_images');
+      let carouselArray = currentCarousel ? JSON.parse(currentCarousel) : [];
+      
+      // Update or add the image
+      const existingIndex = carouselArray.findIndex((img: CarouselImage) => img.id === image.id);
+      if (existingIndex >= 0) {
+        carouselArray[existingIndex] = image;
+      } else {
+        carouselArray.push(image);
+      }
+      
+      // Try to save to localStorage
+      const carouselString = JSON.stringify(carouselArray);
+      localStorage.setItem('binal_carousel_images', carouselString);
+      
+      console.log('✅ Carousel image saved to localStorage');
+      
+      // Dispatch custom event for real-time updates
+      window.dispatchEvent(new CustomEvent('localStorage-update', {
+        detail: { key: 'binal_carousel_images', value: carouselArray }
+      }));
+      
+    } catch (localStorageError) {
+      if (localStorageError instanceof DOMException && localStorageError.code === 22) {
+        // QuotaExceededError - localStorage is full
+        console.warn('⚠️ localStorage quota exceeded, clearing old data and retrying...');
+        
+        try {
+          // Clear old carousel data and try again with just this image
+          localStorage.removeItem('binal_carousel_images');
+          const minimalArray = [image];
+          localStorage.setItem('binal_carousel_images', JSON.stringify(minimalArray));
+          
+          console.log('✅ Saved carousel image after clearing old data');
+          
+          // Dispatch event with just this image
+          window.dispatchEvent(new CustomEvent('localStorage-update', {
+            detail: { key: 'binal_carousel_images', value: minimalArray }
+          }));
+          
+        } catch (retryError) {
+          console.error('❌ Still cannot save to localStorage, relying on database only');
+          // Continue without localStorage - database save already succeeded
+        }
+      } else {
+        console.error('❌ Unexpected localStorage error:', localStorageError);
+      }
     }
     
-    // Save to localStorage
-    localStorage.setItem('binal_carousel_images', JSON.stringify(carouselArray));
-    
-    // Dispatch custom event for real-time updates
-    window.dispatchEvent(new CustomEvent('localStorage-update', {
-      detail: { key: 'binal_carousel_images', value: carouselArray }
-    }));
-    
-    console.log('✅ Carousel image saved and events dispatched');
+    console.log('✅ Carousel image processing completed');
     
   } catch (error) {
     console.error('❌ Error saving carousel image:', error);
