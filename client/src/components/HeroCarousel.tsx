@@ -67,28 +67,35 @@ export function HeroCarousel() {
   const currentImage = images[currentIndex];
 
   return (
-    <div id="home" className="relative h-screen w-full overflow-hidden">
-      {/* Image */}
+    <div 
+      id="home" 
+      className="relative h-screen w-full overflow-hidden"
+      style={{ 
+        minHeight: '100vh',
+        minHeight: '100dvh' // Dynamic viewport height for mobile browsers
+      }}
+    >
+      {/* Image - Mobile optimized */}
       <div className="absolute inset-0">
         <CachedImage
           src={currentImage.url}
           alt={currentImage.title || "Hero image"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70" />
+        {/* Dark gradient overlay - Enhanced for mobile */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/80" />
       </div>
 
-      {/* Content */}
-      <div className="relative h-full flex items-center justify-center text-center px-4">
-        <div className="max-w-4xl">
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Content - Mobile optimized */}
+      <div className="relative h-full flex items-center justify-center text-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl w-full">
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700 leading-tight">
             {currentImage.title || "Binal Studio Photography"}
           </h1>
-          <p className="text-xl sm:text-2xl text-white/90 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+          <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 leading-relaxed">
             {currentImage.subtitle || "Capturing Life's Beautiful Moments"}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <Button
               size="lg"
               onClick={() => {
@@ -98,7 +105,7 @@ export function HeroCarousel() {
                 }
               }}
               data-testid="button-view-gallery"
-              className="text-base"
+              className="text-sm sm:text-base px-6 py-3"
             >
               View Our Work
             </Button>
@@ -111,7 +118,7 @@ export function HeroCarousel() {
                   element.scrollIntoView({ behavior: "smooth" });
                 }
               }}
-              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 text-sm sm:text-base px-6 py-3"
               data-testid="button-contact-us"
             >
               Get in Touch
@@ -120,32 +127,32 @@ export function HeroCarousel() {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - Mobile optimized */}
       <button
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
         data-testid="button-carousel-prev"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all"
         data-testid="button-carousel-next"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
 
-      {/* Dots Navigation */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
+      {/* Dots Navigation - Mobile optimized */}
+      <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-3 rounded-full transition-all ${
+            className={`h-2 sm:h-3 rounded-full transition-all ${
               index === currentIndex
-                ? "w-8 bg-white"
-                : "w-3 bg-white/50 hover:bg-white/75"
+                ? "w-6 sm:w-8 bg-white"
+                : "w-2 sm:w-3 bg-white/50 hover:bg-white/75"
             }`}
             data-testid={`button-carousel-dot-${index}`}
           />
