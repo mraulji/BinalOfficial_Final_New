@@ -1,5 +1,5 @@
 import type { GalleryImage, CarouselImage, Service, TeamMember, Video, BudgetPlannerEntry } from "@shared/schema";
-import { carouselAPI, galleryAPI, budgetAPI, videoAPI, subscribeToChanges, type CarouselItem } from "./supabase";
+import { carouselAPI, galleryAPI, budgetAPI, videoAPI, subscribeToChanges, type CarouselItem, supabase } from "./supabase";
 
 // Import stock images for fallback
 import carousel1 from "@assets/stock_images/elegant_wedding_phot_05974a70.jpg";
@@ -786,7 +786,7 @@ export async function getServices(): Promise<Service[]> {
     console.log('🔄 Loading services from database...');
     
     // Try to get from Supabase first
-    const { data: supabaseServices, error } = await carouselAPI.client
+    const { data: supabaseServices, error } = await supabase
       .from('services')
       .select('*')
       .order('created_at', { ascending: true });
@@ -865,7 +865,7 @@ export async function saveServices(services: Service[]): Promise<void> {
     
     // Save each service to Supabase
     for (const service of services) {
-      const { error } = await carouselAPI.client
+      const { error } = await supabase
         .from('services')
         .upsert({
           id: service.id,
