@@ -39,7 +39,8 @@ import {
   getVideos as getVideosFromSupabase,
   saveVideo
 } from "@/lib/supabaseData";
-import { getServices, STORAGE_KEYS, saveServices, saveBudgetPlannerEntries } from "@/lib/data";
+import { STORAGE_KEYS, saveBudgetPlannerEntries } from "@/lib/data";
+import { getServices, saveServices } from "@/lib/supabaseData";
 import type { CarouselImage, GalleryImage, Service, Video, BudgetPlannerEntry } from "@shared/schema";
 
 export default function AdminDashboard() {
@@ -77,7 +78,13 @@ export default function AdminDashboard() {
         setBudgetEntries(budgetData);
         
         // Load services and videos
-        setServices(getServices());
+        try {
+          const loadedServices = await getServices();
+          setServices(loadedServices);
+          console.log('✅ Loaded services from database/localStorage:', loadedServices.length);
+        } catch (error) {
+          console.error('❌ Error loading services:', error);
+        }
         
         try {
           const loadedVideos = await getVideosFromSupabase();
@@ -373,9 +380,21 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveServices = () => {
-    saveServices(services);
-    toast({ title: "Services saved successfully!" });
+  const handleSaveServices = async () => {
+    try {
+      await saveServices(services);
+      toast({ 
+        title: "Services saved successfully!",
+        description: "All services have been saved to the database."
+      });
+    } catch (error) {
+      console.error('❌ Error saving services:', error);
+      toast({ 
+        title: "Services saved to local storage",
+        description: "Database connection failed, but changes are saved locally.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSaveVideos = async () => {

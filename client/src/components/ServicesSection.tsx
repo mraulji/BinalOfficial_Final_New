@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Camera, Video, Plane, Frame, Book, Heart } from "lucide-react";
-import { getServices, STORAGE_KEYS } from "@/lib/data";
+import { getServices } from "@/lib/supabaseData";
+import { STORAGE_KEYS } from "@/lib/data";
 import type { Service } from "@shared/schema";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -16,8 +17,17 @@ export function ServicesSection() {
   const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
-    // Load initial services
-    setServices(getServices());
+    // Load initial services from Supabase
+    const loadServices = async () => {
+      try {
+        const loadedServices = await getServices();
+        setServices(loadedServices);
+      } catch (error) {
+        console.error('Error loading services:', error);
+      }
+    };
+
+    loadServices();
 
     // Listen for localStorage changes
     const handleStorageChange = (e: CustomEvent) => {

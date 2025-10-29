@@ -777,6 +777,136 @@ export async function saveVideo(video: Video): Promise<void> {
   }
 }
 
+// ============================================
+// SERVICES SUPABASE INTEGRATION
+// ============================================
+
+export async function getServices(): Promise<Service[]> {
+  try {
+    console.log('🔄 Loading services from database...');
+    
+    // Try to get from Supabase first
+    const { data: supabaseServices, error } = await carouselAPI.client
+      .from('services')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    
+    if (supabaseServices && supabaseServices.length > 0) {
+      console.log('✅ Loaded services from database:', supabaseServices.length);
+      
+      // Convert database format to app format
+      const services: Service[] = supabaseServices.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        basePrice: item.base_price,
+        unit: item.unit,
+        icon: item.icon
+      }));
+      
+      // Update localStorage for offline access
+      localStorage.setItem('binal_services', JSON.stringify(services));
+      
+      return services;
+    }
+  } catch (error) {
+    console.error('❌ Database load failed, using localStorage/defaults:', error);
+  }
+
+  // Fallback to localStorage then defaults
+  try {
+    const stored = localStorage.getItem('binal_services');
+    if (stored) {
+      const services = JSON.parse(stored);
+      console.log('📱 Using localStorage services:', services.length);
+      return services;
+    }
+  } catch (error) {
+    console.error('❌ Error parsing localStorage services:', error);
+  }
+
+  // Final fallback to default services
+  const defaultServices: Service[] = [
+    {
+      id: "s1",
+      name: "Photography",
+      description: "High-quality professional photography for all occasions. Includes 300 edited photos delivered digitally.",
+      basePrice: 50000,
+      unit: "per event",
+      icon: "Camera",
+    },
+    {
+      id: "s2", 
+      name: "Videography",
+      description: "Cinematic video coverage with professional editing and color grading. Full HD or 4K options available.",
+      basePrice: 75000,
+      unit: "per event",
+      icon: "Video",
+    },
+    {
+      id: "s3",
+      name: "Drone Services", 
+      description: "Aerial photography and videography for stunning bird's-eye perspectives of your special moments.",
+      basePrice: 25000,
+      unit: "per session",
+      icon: "Plane",
+    }
+  ];
+  
+  console.log('📋 Using default services:', defaultServices.length);
+  return defaultServices;
+}
+
+export async function saveServices(services: Service[]): Promise<void> {
+  try {
+    console.log('🔄 Saving services to database...', services.length);
+    
+    // Save each service to Supabase
+    for (const service of services) {
+      const { error } = await carouselAPI.client
+        .from('services')
+        .upsert({
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          base_price: service.basePrice,
+          unit: service.unit,
+          icon: service.icon,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+        
+      if (error) throw error;
+    }
+    
+    console.log('✅ All services saved to database');
+    
+    // Update localStorage for performance
+    localStorage.setItem('binal_services', JSON.stringify(services));
+    
+    // Dispatch event for real-time updates
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_services', value: services }
+    }));
+    
+  } catch (error) {
+    console.error('❌ Error saving services to database:', error);
+    
+    // Fallback to localStorage only
+    localStorage.setItem('binal_services', JSON.stringify(services));
+    
+    // Dispatch event anyway
+    window.dispatchEvent(new CustomEvent('localStorage-update', {
+      detail: { key: 'binal_services', value: services }
+    }));
+    
+    throw error; // Re-throw so admin knows there was an issue
+  }
+}
+
 // Initialize real-time updates on app start
 if (typeof window !== 'undefined') {
   setupRealTimeUpdates();

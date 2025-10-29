@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { getServices, STORAGE_KEYS } from "@/lib/data";
+import { getServices } from "@/lib/supabaseData";
+import { STORAGE_KEYS } from "@/lib/data";
 import { sendBudgetEmail } from "@/lib/emailService";
 import { saveBudgetEntry } from "@/lib/supabaseData";
 import type { Service, BudgetPlannerEntry } from "@shared/schema";
@@ -25,8 +26,17 @@ export function BudgetCalculator() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load initial services
-    setServices(getServices());
+    // Load initial services from Supabase
+    const loadServices = async () => {
+      try {
+        const loadedServices = await getServices();
+        setServices(loadedServices);
+      } catch (error) {
+        console.error('Error loading services:', error);
+      }
+    };
+
+    loadServices();
 
     // Listen for localStorage changes for services
     const handleStorageChange = (e: CustomEvent) => {
