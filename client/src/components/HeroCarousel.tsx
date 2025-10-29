@@ -71,7 +71,6 @@ export function HeroCarousel() {
       id="home" 
       className="relative h-screen w-full overflow-hidden"
       style={{ 
-        minHeight: '100vh',
         minHeight: '100dvh' // Dynamic viewport height for mobile browsers
       }}
     >
